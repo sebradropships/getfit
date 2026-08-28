@@ -12,7 +12,6 @@ export type Variant = {
   id: string;
   title: string;
   availableForSale: boolean;
-  quantityAvailable: number | null;
   price: Money;
   compareAtPrice: Money | null;
 };
