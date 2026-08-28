@@ -43,9 +43,12 @@ In Shopify admin: **Settings → Apps and sales channels → Develop apps →
 Create an app → Configure Storefront API scopes**. Enable at minimum:
 
 - `unauthenticated_read_product_listings`
-- `unauthenticated_read_product_inventory`
 - `unauthenticated_write_checkouts`
 - `unauthenticated_read_checkouts`
+
+Do **not** enable `unauthenticated_read_product_inventory`. Nothing in this app
+reads inventory quantities. Requesting the scope without granting it makes the
+Storefront query fail and every product page return 500.
 
 Install the app and copy the **Storefront API access token**.
 
