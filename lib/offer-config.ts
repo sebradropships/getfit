@@ -41,11 +41,18 @@ export const OFFER = {
   /**
    * Real campaign deadline, or null for no countdown.
    *
-   * Currently null: no countdown is shown. Only set this to a date you will
-   * genuinely honour by restoring the compare-at price in Shopify when it
-   * passes. A timer that resets per visitor is a deceptive practice.
+   * THIS IS A FIXED MOMENT IN TIME, not a per-visitor duration. Everyone sees
+   * the same clock counting to the same instant, and when it passes the
+   * countdown is gone for good.
+   *
+   * When it expires you must restore the compare-at price in Shopify, or the
+   * page will still be advertising a discount for an offer that has ended.
+   * To run another promotion, set a new deadline here — do not convert this
+   * into a rolling timer that restarts for each visitor. An offer that never
+   * actually ends is fabricated urgency and a deceptive practice under FTC
+   * Act Section 5.
    */
-  saleEndsAt: null as string | null,
+  saleEndsAt: "2026-08-30T21:00:00-07:00" as string | null,
 
   /** Free-shipping threshold in store currency, or null if you don't offer one. */
   freeShippingThreshold: null as number | null,

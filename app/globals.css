@@ -227,6 +227,17 @@ button {
   padding: 9px var(--gutter);
 }
 
+/*
+  Tabular figures so the strip doesn't shimmy sideways as the digits tick over
+  once a second — the whole bar is centred, so a variable-width clock would
+  nudge the text on every frame.
+*/
+.announce__clock {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
 /* ----------------------------------------------------------------- header */
 
 .header {

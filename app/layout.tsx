@@ -62,7 +62,10 @@ export default function RootLayout({
         </a>
 
         <CartProvider>
-          <Header announcement={OFFER.announcement} />
+          <Header
+            announcement={OFFER.announcement}
+            saleEndsAt={OFFER.saleEndsAt}
+          />
           <main id="main">{children}</main>
           <Footer />
           <CartDrawer

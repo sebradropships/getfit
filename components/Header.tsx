@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import AnnouncementBar from "./AnnouncementBar";
 import { useCart, useReveal } from "./CartProvider";
 
 const NAV = [
@@ -47,7 +48,13 @@ function CloseIcon() {
   );
 }
 
-export default function Header({ announcement }: { announcement: string | null }) {
+export default function Header({
+  announcement,
+  saleEndsAt,
+}: {
+  announcement: string | null;
+  saleEndsAt: string | null;
+}) {
   const { cart, openCart } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -74,7 +81,9 @@ export default function Header({ announcement }: { announcement: string | null }
 
   return (
     <>
-      {announcement && <div className="announce">{announcement}</div>}
+      {announcement && (
+        <AnnouncementBar text={announcement} endsAt={saleEndsAt} />
+      )}
 
       <header className="header">
         <div className="wrap header__bar">

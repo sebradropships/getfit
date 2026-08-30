@@ -28,8 +28,12 @@ function Countdown({ endsAt }: { endsAt: string }) {
 
   const s = Math.floor(remaining / 1000);
   const pad = (n: number) => String(n).padStart(2, "0");
+  const days = Math.floor(s / 86400);
+
+  // Drop the days cell on a same-day deadline — a permanent "00 DAYS" reads
+  // like a broken clock rather than urgency.
   const units: Array<[string, string]> = [
-    [pad(Math.floor(s / 86400)), "Days"],
+    ...(days > 0 ? ([[pad(days), "Days"]] as Array<[string, string]>) : []),
     [pad(Math.floor((s % 86400) / 3600)), "Hrs"],
     [pad(Math.floor((s % 3600) / 60)), "Min"],
     [pad(s % 60), "Sec"],
