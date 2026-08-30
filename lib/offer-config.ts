@@ -28,26 +28,45 @@
 export const OFFER = {
   featuredHandle: "pentagram-magnetite-hematite-stretch-bracelet",
 
-  /** Configurable announcement bar. Set to null to hide the bar entirely. */
-  announcement: "LIMITED LAUNCH OFFER — SAVE 28% TODAY" as string | null,
+  /**
+   * Announcement bar. Set to null to hide it.
+   *
+   * The discount percentage is deliberately not written here. It is computed
+   * from the live Shopify price and compare-at price, so a hand-typed "SAVE
+   * 40%" could not drift out of step with what the customer is actually
+   * charged. Change the price in Shopify and every figure on the site follows.
+   */
+  announcement: "LIMITED LAUNCH OFFER" as string | null,
 
   /**
    * Real campaign deadline, or null for no countdown.
-   * Only set this to a date you will actually honour by restoring the
-   * compare-at price in Shopify. A timer that resets per visitor is illegal.
+   *
+   * Currently null: no countdown is shown. Only set this to a date you will
+   * genuinely honour by restoring the compare-at price in Shopify when it
+   * passes. A timer that resets per visitor is a deceptive practice.
    */
-  saleEndsAt: "2026-09-05T23:59:59-07:00" as string | null,
+  saleEndsAt: null as string | null,
 
   /** Free-shipping threshold in store currency, or null if you don't offer one. */
   freeShippingThreshold: null as number | null,
 
-  /** Only display policies that actually exist. */
+  /**
+   * Only list policies that actually exist.
+   *
+   * There is NO return or refund policy for this product, so nothing anywhere
+   * in this app may promise returns, refunds, a money-back guarantee or a
+   * "risk-free" purchase. Do not add a returns field back here without a real
+   * policy behind it — an advertised return window is an enforceable promise.
+   */
   shipsIn: "1–2 business days",
-  returnWindowDays: 30,
   supportEmail: "sebradropships@gmail.com",
 
+  /**
+   * Kept short on purpose. The magnet warning is a genuine safety matter for
+   * anyone with an implanted cardiac device, so it stays regardless of tone.
+   */
   disclaimer:
-    "Sold as a fashion and lifestyle accessory. This product is not a medical device, is not a weight-loss product, and is not intended to diagnose, treat, cure, or prevent any disease. Not recommended for anyone with a pacemaker, implanted defibrillator, insulin pump, or other implanted electronic device. Consult a licensed healthcare provider about any health concern.",
+    "Worn as a lifestyle accessory and a daily reminder of your own goals — not a medical device, and not a treatment for any condition. Because it contains magnets, we don't recommend it for anyone with a pacemaker, implanted defibrillator, insulin pump or other implanted electronic device.",
 } as const;
 
 /**

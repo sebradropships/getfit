@@ -4,7 +4,7 @@ import { OFFER } from "@/lib/offer-config";
 export const metadata: Metadata = {
   title: "Contact & Support",
   description:
-    "Get in touch about an order, shipping, returns or anything else. We answer every email.",
+    "Get in touch about an order, shipping or anything else. We answer every email.",
   alternates: { canonical: "/contact" },
 };
 
@@ -18,7 +18,7 @@ export default function ContactPage() {
             We answer every email.
           </h1>
           <p className="lede" style={{ marginTop: 16 }}>
-            Questions about an order, a return, or whether this will fit? Write
+            Questions about an order, delivery, or whether this will fit? Write
             to us and a human will reply.
           </p>
 
@@ -46,14 +46,11 @@ export default function ContactPage() {
               </p>
             </div>
 
-            <div className="card" id="returns">
-              <h3>Returns</h3>
-              <p>
-                {OFFER.returnWindowDays}-day returns on unworn pieces in their
-                original condition. Email us first and we will walk you through
-                it.
-              </p>
-            </div>
+            {/*
+              No returns card. This product has no return policy, and an
+              advertised return window is an enforceable promise. Add one here
+              only when a real policy exists to back it.
+            */}
 
             <div className="card">
               <h3>Payment</h3>

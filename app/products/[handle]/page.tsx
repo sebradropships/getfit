@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import BuyBox from "@/components/BuyBox";
@@ -7,7 +6,7 @@ import ProductGallery from "@/components/ProductGallery";
 import Reviews from "@/components/Reviews";
 import { getProduct, getProductHandles } from "@/lib/shopify";
 import { CENTREPIECE_PHOTO, OFFER, REVIEWS, reviewSummary } from "@/lib/offer-config";
-import { cdnImage, discount, type Product } from "@/lib/catalog";
+import { cdnImage, discount, formatMoney, type Product } from "@/lib/catalog";
 
 export const revalidate = 60;
 
@@ -38,7 +37,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!product) return { title: "Not found" };
 
   const { name } = splitTitle(product.title);
-  const description = product.description.replace(/\s+/g, " ").trim().slice(0, 155);
+  const description =
+    "A magnetic stone bracelet you wear as a daily reminder to stay focused, motivated and consistent with your goals.";
 
   return {
     title: name,
@@ -91,53 +91,91 @@ function productJsonLd(product: Product, url: string) {
   };
 }
 
+/**
+ * Benefit cards.
+ *
+ * Each one is either a fact about how the bracelet is built, or something the
+ * WEARER does. None of them assert an effect the object has on the body —
+ * that line is what separates a motivational accessory from an unsubstantiated
+ * health claim, and magnetic bracelets have no evidence behind the latter.
+ */
 const BENEFITS = [
   {
-    title: "Everyday comfort",
-    text: "Stretch construction slips on in about a second, with no clasp to fasten or lose.",
+    icon: "🧲",
+    title: "Magnetic stone design",
+    text: "Magnetite and hematite beads with integrated magnetic elements, finished in matte black with a pentagram centrepiece.",
   },
   {
-    title: "Distinctive design",
-    text: "Matte-black stone and a symbolic centrepiece give it a look you can recognise across a room.",
+    icon: "🎯",
+    title: "Wear your goal",
+    text: "A goal you can see is a goal you keep. It sits on your wrist through every decision you make today.",
   },
   {
-    title: "Easy styling",
-    text: "Unisex and deliberately low-key. Works with tailoring, denim and everything between.",
+    icon: "🧘",
+    title: "A daily reset",
+    text: "Take a second each morning to put it on and decide what kind of day you're going to have.",
   },
   {
-    title: "Made for daily ritual",
-    text: "Something tactile to reach for — a small, repeatable moment in an ordinary day.",
+    icon: "🔥",
+    title: "Stay consistent",
+    text: "Progress isn't one workout or one meal. It's showing up again tomorrow, and the day after that.",
+  },
+];
+
+const STEPS = [
+  {
+    n: "01",
+    title: "Wear it",
+    text: "Put your bracelet on every morning, before the day gets loud.",
+  },
+  {
+    n: "02",
+    title: "Remember your goal",
+    text: "Let it be the cue that pulls you back to what you decided you wanted.",
+  },
+  {
+    n: "03",
+    title: "Keep moving",
+    text: "Pair that mindset with healthy habits, movement and consistency. That's the part that changes things.",
   },
 ];
 
 const FAQ = [
   {
-    q: "Is the bracelet adjustable?",
-    a: "It is one size with a stretch fit rather than an adjustable clasp. The elastic core lets it slip over the hand and settle back against the wrist.",
+    q: "How does this fit into a weight-loss routine?",
+    a: "Think of it as a cue, not a shortcut. You wear it as a physical reminder of the goal you've set, so it stays with you through the decisions that actually move the needle — what you eat, whether you move, and whether you show up again tomorrow. The bracelet doesn't do the work. It keeps you company while you do.",
   },
   {
-    q: "What size will it fit?",
-    a: "It is comfortable on wrists roughly 6.5 to 8 inches around. Outside that range the fit will be either tight or loose, since there is no clasp to adjust.",
+    q: "What is the bracelet made from?",
+    a: "Magnetite and hematite beads — natural iron-bearing stone polished to a soft satin sheen — strung on an elastic stretch cord, with a carved pentagram focal bead set flush so it won't snag.",
   },
   {
-    q: "What materials are used?",
-    a: "Magnetite and hematite beads — natural iron-bearing stone polished to a soft satin sheen — strung on an elastic stretch cord.",
+    q: "What stones are used?",
+    a: "Magnetite and hematite. Both are natural iron-bearing stones with a dense, cool feel and a dark metallic lustre you don't get from plated metal or resin imitations.",
   },
   {
-    q: "Is it waterproof?",
-    a: "No. Keep it away from perfume, lotions and prolonged water exposure, and take it off before swimming or showering.",
+    q: "Is it comfortable for everyday wear?",
+    a: "Yes. It's lightweight for a stone bracelet, sits flat against the wrist and has no clasp to dig in. Most people stop noticing it within a few minutes.",
+  },
+  {
+    q: "Is it adjustable?",
+    a: "It's one size with a stretch fit rather than an adjustable clasp. It's comfortable on wrists roughly 6.5 to 8 inches around.",
+  },
+  {
+    q: "How does the stretch design work?",
+    a: "The beads are strung on a strong elastic core, so it stretches over your hand and settles back against the wrist. On and off in about a second, with nothing to fasten.",
   },
   {
     q: "Can I wear it every day?",
-    a: "Yes. It is built for daily wear. Store it flat rather than hanging so the elastic keeps its tension over time.",
+    a: "That's the idea — the reminder only works if it's there. Store it flat rather than hanging so the elastic keeps its tension over time.",
   },
   {
-    q: "How do I clean it?",
-    a: "Wipe it with a dry, soft cloth. Do not soak it or use chemical cleaners.",
+    q: "How should I clean it?",
+    a: "Wipe it with a dry, soft cloth. Keep it away from perfume, lotions and prolonged water, and take it off before swimming or showering.",
   },
   {
-    q: "Do the magnets have proven health benefits?",
-    a: "No — and we will not tell you otherwise. There is no reliable scientific evidence that magnetic bracelets aid weight loss, circulation, metabolism, detoxification or pain. We sell this as a design object for everyday wear, nothing more. If you have a pacemaker, implanted defibrillator, insulin pump or other implanted electronic device, we do not recommend wearing it.",
+    q: "What comes with my order?",
+    a: "One Pentagram Magnetic Stone Bracelet, shipped with tracking. Because it contains magnets, we don't recommend it for anyone with a pacemaker, implanted defibrillator, insulin pump or other implanted electronic device.",
   },
 ];
 
@@ -147,11 +185,12 @@ export default async function ProductPage({ params }: Props) {
 
   if (!product || product.variants.length === 0) notFound();
 
-  const { name, subtitle } = splitTitle(product.title);
+  const { name } = splitTitle(product.title);
   const variant = product.variants[0];
   const { hasDiscount, percent } = discount(variant);
   const url = `/products/${product.handle}`;
   const lifestyle = product.images.slice(1);
+  const heroImage = product.images[0] ?? product.featuredImage;
 
   return (
     <>
@@ -162,7 +201,7 @@ export default async function ProductPage({ params }: Props) {
         }}
       />
 
-      {/* 1–11. Images, name, price, offer, quantity, add to cart, buy now */}
+      {/* ---------------------------------------- 1. HOOK + PRODUCT + OFFER */}
       <section className="hero">
         <div className="wrap">
           <div className="hero__grid">
@@ -175,67 +214,96 @@ export default async function ProductPage({ params }: Props) {
             </div>
 
             <div className="hero__body">
-              <span className="eyebrow">
-                Ancient symbolism. Modern everyday wear.
-              </span>
+              <span className="eyebrow">For the journey, not the shortcut</span>
 
-              <h1>{name}</h1>
-              {subtitle && (
-                <p className="hero__sub" style={{ marginTop: 8 }}>
-                  {subtitle}
-                </p>
-              )}
+              <h1>Wear your weight-loss journey.</h1>
 
               <p className="hero__sub">
-                A refined stretch bracelet in genuine magnetite and hematite —
-                real stone weight, matte black, and no clasp to fumble with.
+                A magnetic stone bracelet designed to become your everyday
+                reminder to stay focused, motivated and committed to your goals.
               </p>
+
+              {/*
+                The marketing headline carries the H1, but the shopper still
+                needs to know what the thing is actually called — for
+                recognition at checkout, and so the page names the product it
+                sells.
+              */}
+              <p className="hero__product">{name}</p>
 
               <BuyBox
                 product={product}
                 saleEndsAt={OFFER.saleEndsAt}
                 shipsIn={OFFER.shipsIn}
-                returnWindowDays={OFFER.returnWindowDays}
               />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Trust strip */}
+      {/* Trust strip — only claims that are actually true. No returns. */}
       <section style={{ marginTop: 44 }}>
         <div className="trust">
           <div className="trust__i">
-            <b>Lightweight &amp; comfortable</b>
-            <span>Designed for everyday wear</span>
-          </div>
-          <div className="trust__i">
-            <b>Stretch fit</b>
-            <span>On and off in a second</span>
-          </div>
-          <div className="trust__i">
-            <b>Unisex design</b>
-            <span>Complements any style</span>
+            <b>Free shipping</b>
+            <span>On every order</span>
           </div>
           <div className="trust__i">
             <b>Secure checkout</b>
             <span>Encrypted, handled by Shopify</span>
           </div>
+          <div className="trust__i">
+            <b>Easy everyday wear</b>
+            <span>Stretch fit, no clasp</span>
+          </div>
+          <div className="trust__i">
+            <b>Customer support</b>
+            <span>A human answers every email</span>
+          </div>
         </div>
       </section>
 
-      {/* 12. Benefits */}
+      {/* -------------------------------------------------- 2. WHY WEAR IT */}
+      <section className="section band">
+        <div className="wrap">
+          <div className="reveal" style={{ maxWidth: "22ch" }}>
+            <span className="eyebrow eyebrow--on-dark">The idea</span>
+            <h2 className="h2" style={{ marginTop: 12 }}>
+              Your goals should never leave your side.
+            </h2>
+          </div>
+          <div className="band__cols">
+            <p className="band__lede reveal">
+              Losing weight is never decided in one workout or one meal. It gets
+              decided in the small moments — the afternoon you nearly skipped
+              it, the evening you almost ordered in, the morning the alarm went
+              off and you got up anyway.
+            </p>
+            <p className="band__lede reveal">
+              The hard part isn&rsquo;t knowing what to do. It&rsquo;s
+              remembering, at 3pm on a difficult Tuesday, that you decided to.
+              This is a reminder you can&rsquo;t close, mute or scroll past.
+              It&rsquo;s on your wrist.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------ 3. MOTIVATION / BENEFITS */}
       <section className="section">
         <div className="wrap">
           <div className="reveal">
-            <span className="eyebrow">Why it stays on</span>
+            <span className="eyebrow">Why people wear it</span>
             <h2 className="h2" style={{ marginTop: 10 }}>
-              Why you&rsquo;ll reach for it every day.
+              Built to keep you honest.
             </h2>
           </div>
           <div className="cards cards--4">
             {BENEFITS.map((b) => (
               <div className="card reveal" key={b.title}>
+                <div className="card__ico" aria-hidden="true">
+                  {b.icon}
+                </div>
                 <h3>{b.title}</h3>
                 <p>{b.text}</p>
               </div>
@@ -244,8 +312,34 @@ export default async function ProductPage({ params }: Props) {
         </div>
       </section>
 
-      {/* 13. Story */}
-      <section className="section" id="story" style={{ background: "var(--paper-2)" }}>
+      {/* ------------------------------------------------ 4. EMOTIONAL BEAT */}
+      <section className="feature">
+        {heroImage && (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            className="feature__bg"
+            src={cdnImage(heroImage.url, 1200)}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+          />
+        )}
+        <div className="wrap feature__inner">
+          <h2 className="feature__h reveal">
+            Losing weight is a journey. Wear the reminder.
+          </h2>
+          <p className="feature__p reveal">
+            Discipline isn&rsquo;t a personality trait. It&rsquo;s a stack of
+            small decisions, most of them boring, most of them made when nobody
+            is watching. Confidence is what you get on the other side of making
+            them consistently. This is for the version of you that keeps going.
+          </p>
+        </div>
+      </section>
+
+      {/* -------------------------------------------- 5. STONES AND DESIGN */}
+      <section className="section" id="story">
         <div className="wrap story">
           <div className="story__img reveal">
             {product.featuredImage && (
@@ -263,81 +357,66 @@ export default async function ProductPage({ params }: Props) {
             )}
           </div>
           <div className="reveal">
-            <span className="eyebrow">The idea</span>
+            <span className="eyebrow">Stones &amp; design</span>
             <h2 className="h2" style={{ marginTop: 10 }}>
-              More than an accessory.
+              Not ordinary jewelry.
             </h2>
             <p className="lede" style={{ marginTop: 16 }}>
-              Designed around balance, symbolism and everyday ritual, this
-              bracelet brings a distinctive visual identity to a simple piece of
-              daily wear. It is not trying to be loud. It is trying to be the
-              one you keep putting back on.
+              Magnetite and hematite are natural iron-bearing stones — dense,
+              cool to the touch, with a dark metallic lustre that plated metal
+              and resin can&rsquo;t fake. They&rsquo;re strung on an elastic
+              core, so there&rsquo;s no clasp to fasten and nothing to dig in.
             </p>
+            <p className="lede" style={{ marginTop: 14 }}>
+              A carved pentagram centrepiece sits flush in the line of beads,
+              set so it won&rsquo;t catch on a sleeve. Matte black, unisex, and
+              quiet enough to wear with anything — which matters, because the
+              one you actually wear every day is the one that works.
+            </p>
+
+            {CENTREPIECE_PHOTO && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={CENTREPIECE_PHOTO.url}
+                alt={CENTREPIECE_PHOTO.alt}
+                loading="lazy"
+                decoding="async"
+                style={{ marginTop: 20, borderRadius: 12 }}
+              />
+            )}
           </div>
         </div>
       </section>
 
-      {/* 14. Crafted details */}
-      <section className="section">
+      {/* --------------------------------- 6. HOW IT FITS INTO YOUR JOURNEY */}
+      <section className="section" style={{ background: "var(--paper-2)" }}>
         <div className="wrap">
           <div className="reveal">
-            <span className="eyebrow">The details</span>
+            <span className="eyebrow">The routine</span>
             <h2 className="h2" style={{ marginTop: 10 }}>
-              Crafted with intention.
+              How it fits your journey.
             </h2>
           </div>
-
-          <div className="cards cards--3">
-            <div className="card reveal">
-              <div className="card__n">01 — Symbolic detail</div>
-              <h3>A centrepiece with meaning</h3>
-              <p>
-                A distinctive pentagram-inspired centrepiece adds character and
-                symbolic depth, set flush so it will not snag on a sleeve or a
-                cuff.
-              </p>
-              {CENTREPIECE_PHOTO && (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={CENTREPIECE_PHOTO.url}
-                  alt={CENTREPIECE_PHOTO.alt}
-                  loading="lazy"
-                  decoding="async"
-                  style={{ marginTop: 16, borderRadius: 10 }}
-                />
-              )}
-            </div>
-
-            <div className="card reveal">
-              <div className="card__n">02 — Magnetic elements</div>
-              <h3>Magnetic by design</h3>
-              <p>
-                Integrated magnetic elements are part of the bracelet&rsquo;s
-                construction, for people who like magnetic-style accessories. We
-                make no health claims for them.
-              </p>
-            </div>
-
-            <div className="card reveal">
-              <div className="card__n">03 — Everyday comfort</div>
-              <h3>Built to be worn</h3>
-              <p>
-                A flexible stretch construction makes it easy to wear all day —
-                no clasp, no pinching, and it sits flat against the wrist.
-              </p>
-            </div>
+          <div className="steps">
+            {STEPS.map((s) => (
+              <div className="step reveal" key={s.n}>
+                <div className="step__n">{s.n}</div>
+                <h3>{s.title}</h3>
+                <p>{s.text}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* 15. Lifestyle imagery */}
+      {/* ---------------------------------------------- 7. LIFESTYLE IMAGES */}
       {lifestyle.length > 0 && (
-        <section className="section" style={{ paddingTop: 0 }}>
+        <section className="section" style={{ paddingBottom: 0 }}>
           <div className="wrap">
             <div className="reveal">
               <span className="eyebrow">Closer look</span>
               <h2 className="h2" style={{ marginTop: 10, marginBottom: 24 }}>
-                Meet your new everyday essential.
+                On the wrist.
               </h2>
             </div>
             <ProductGallery images={lifestyle} title={name} />
@@ -345,22 +424,10 @@ export default async function ProductPage({ params }: Props) {
         </section>
       )}
 
-      {/* 16. Reviews */}
+      {/* ------------------------------------------------------ 8. REVIEWS */}
       <Reviews />
 
-      {/* Full description from Shopify */}
-      <section className="section" style={{ paddingTop: 0 }}>
-        <div className="wrap">
-          <h2 className="h2 reveal">The specifics.</h2>
-          <div
-            className="rich reveal"
-            style={{ marginTop: 20 }}
-            dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
-          />
-        </div>
-      </section>
-
-      {/* 17. FAQ */}
+      {/* ---------------------------------------------------------- 9. FAQ */}
       <section className="section" id="faq" style={{ background: "var(--paper-2)" }}>
         <div className="wrap">
           <h2 className="h2 reveal">Questions, answered.</h2>
@@ -375,64 +442,34 @@ export default async function ProductPage({ params }: Props) {
         </div>
       </section>
 
-      {/* 18. Shipping / returns */}
+      {/* ------------------------------------------- 10. FINAL OFFER + BUY */}
       <section className="section">
         <div className="wrap">
-          <h2 className="h2 reveal">Ordering with us.</h2>
-          <div className="cards cards--4">
-            <div className="card reveal">
-              <h3>Fast shipping</h3>
-              <p>Ships in {OFFER.shipsIn}, with tracking on every order.</p>
-            </div>
-            <div className="card reveal">
-              <h3>Easy returns</h3>
-              <p>
-                {OFFER.returnWindowDays}-day returns on unworn pieces in their
-                original condition.
-              </p>
-            </div>
-            <div className="card reveal">
-              <h3>Secure payment</h3>
-              <p>
-                Checkout is encrypted and handled entirely by Shopify. We never
-                see your card details.
-              </p>
-            </div>
-            <div className="card reveal">
-              <h3>Customer support</h3>
-              <p>
-                Questions go to{" "}
-                <a
-                  href={`mailto:${OFFER.supportEmail}`}
-                  style={{ textDecoration: "underline" }}
-                >
-                  {OFFER.supportEmail}
-                </a>
-                .
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 19. Final CTA */}
-      <section className="section" style={{ paddingTop: 0 }}>
-        <div className="wrap">
           <div className="final reveal">
-            <h2>Your everyday symbol of balance.</h2>
+            {hasDiscount && (
+              <span className="final__flag">🔥 Limited launch offer</span>
+            )}
+
+            <h2>Ready to start your journey?</h2>
             <p>
-              Real stone, a distinctive centrepiece, and a fit that takes a
-              second. Ready to make it yours?
+              Make today the day you start taking your goals seriously — and
+              give yourself something to hold on to while you do.
             </p>
-            <Link href="#main" className="btn btn--primary">
-              Get yours today
-              {hasDiscount && (
-                <span className="btn__sub">Save {percent}% during launch</span>
+
+            <div className="final__price">
+              {hasDiscount && variant.compareAtPrice && (
+                <s>{formatMoney(variant.compareAtPrice)}</s>
               )}
-            </Link>
+              <b>{formatMoney(variant.price)}</b>
+              {hasDiscount && <em>Save {percent}%</em>}
+            </div>
+
+            <a href="#main" className="btn btn--primary">
+              Get yours today →
+            </a>
+
             <p className="final__meta">
-              Secure checkout • {OFFER.returnWindowDays}-day returns • Ships in{" "}
-              {OFFER.shipsIn}
+              Free shipping • Secure checkout • Ships in {OFFER.shipsIn}
             </p>
           </div>
 

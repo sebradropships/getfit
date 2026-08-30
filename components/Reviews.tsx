@@ -42,9 +42,9 @@ export default function Reviews() {
     <section className="section" id="reviews">
       <div className="wrap">
         <div className="rev__head reveal">
-          <span className="eyebrow">Social proof</span>
+          <span className="eyebrow">Real stories</span>
           <h2 className="h2" style={{ marginTop: 10 }}>
-            Loved by everyday wearers.
+            Started by people like you.
           </h2>
         </div>
 
@@ -70,12 +70,10 @@ export default function Reviews() {
         ) : (
           <div className="rev__empty reveal">
             <Stars rating={0} muted />
-            <h3 style={{ marginTop: 12, fontSize: 19 }}>
-              Be the first to review this piece.
-            </h3>
+            <h3 style={{ marginTop: 12, fontSize: 19 }}>Be one of the first.</h3>
             <p>
-              We publish every review exactly as it is written, once real
-              customers have worn it.
+              Your experience could inspire someone else&rsquo;s journey. We
+              publish every review exactly as it is written.
             </p>
           </div>
         )}

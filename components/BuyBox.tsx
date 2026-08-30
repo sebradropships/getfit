@@ -91,12 +91,10 @@ export default function BuyBox({
   product,
   saleEndsAt,
   shipsIn,
-  returnWindowDays,
 }: {
   product: Product;
   saleEndsAt: string | null;
   shipsIn: string;
-  returnWindowDays: number;
 }) {
   const { add, openCart, error: cartError } = useCart();
 
@@ -189,14 +187,15 @@ export default function BuyBox({
 
       {hasDiscount && (
         <div className="offer">
-          <div className="offer__title">Limited launch offer</div>
+          <div className="offer__title">🔥 Limited launch offer</div>
           <div className="offer__line">Save {percent}% today</div>
           {saleEndsAt && <Countdown endsAt={saleEndsAt} />}
           <StockBar variant={variant} />
+          {/* No returns line: this product has no return policy. */}
           <div className="offer__perks">
             <span>✓ Free shipping</span>
-            <span>✓ {returnWindowDays}-day returns</span>
             <span>✓ Secure checkout</span>
+            <span>✓ Easy everyday wear</span>
           </div>
         </div>
       )}
@@ -265,7 +264,7 @@ export default function BuyBox({
             onClick={handleAdd}
             disabled={soldOut || busy}
           >
-            {soldOut ? "Sold out" : adding ? "Adding…" : "Add to cart"}
+            {soldOut ? "Sold out" : adding ? "Adding…" : "Get yours today →"}
             {!soldOut && !adding && (
               <span className="btn__sub">Ships in {shipsIn}</span>
             )}

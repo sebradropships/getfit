@@ -80,9 +80,7 @@ export default function Footer() {
               <li>
                 <Link href="/contact#shipping">Shipping</Link>
               </li>
-              <li>
-                <Link href="/contact#returns">Returns</Link>
-              </li>
+              {/* No returns link: this product has no return policy. */}
               <li>
                 <Link href={`${SHOP_HREF}#faq`}>FAQ</Link>
               </li>
