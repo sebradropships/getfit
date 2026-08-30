@@ -26,6 +26,13 @@
   --ok: #2f6b4f;
   --danger: #8c2f2f;
 
+  /*
+    Sale strip. Deep enough to stay premium next to the near-black header
+    rather than reading as a discount-store banner. Against --paper text this
+    is roughly 7.3:1, so the small uppercase type clears WCAG AA comfortably.
+  */
+  --sale: #a51c1c;
+
   --r-sm: 6px;
   --r-md: 10px;
   --r-lg: 16px;
@@ -210,7 +217,7 @@ button {
 /* ------------------------------------------------------------ announcement */
 
 .announce {
-  background: var(--ink);
+  background: var(--sale);
   color: var(--paper);
   font-size: 11.5px;
   letter-spacing: 0.1em;
