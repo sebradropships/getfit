@@ -1222,6 +1222,31 @@ button {
   margin-bottom: 12px;
 }
 
+/* ------------------------------------------------------- why section ---- */
+
+.why__head {
+  max-width: 34ch;
+}
+.why__img {
+  margin-top: 32px;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--white);
+}
+.why__img img {
+  width: 100%;
+  /* Tall on phones so the wrist fills the frame; wide on desktop so the
+     section reads as one banner rather than a stacked block. */
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+@media (min-width: 768px) {
+  .why__img img {
+    aspect-ratio: 21 / 9;
+  }
+}
+
 /* ------------------------------------------------------------- sticky bar */
 
 .sticky {
