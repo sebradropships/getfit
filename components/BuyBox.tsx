@@ -191,7 +191,7 @@ export default function BuyBox({
 
       {hasDiscount && (
         <div className="offer">
-          <div className="offer__title">🔥 Limited launch offer</div>
+          <div className="offer__title">Limited offer</div>
           <div className="offer__line">Save {percent}% today</div>
           {saleEndsAt && <Countdown endsAt={saleEndsAt} />}
           <StockBar variant={variant} />

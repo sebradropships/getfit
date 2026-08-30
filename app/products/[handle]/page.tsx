@@ -447,7 +447,7 @@ export default async function ProductPage({ params }: Props) {
         <div className="wrap">
           <div className="final reveal">
             {hasDiscount && (
-              <span className="final__flag">🔥 Limited launch offer</span>
+              <span className="final__flag">Limited offer</span>
             )}
 
             <h2>Ready to start your journey?</h2>
