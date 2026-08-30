@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import AnnouncementBar from "./AnnouncementBar";
 import { useCart, useReveal } from "./CartProvider";
 
+/**
+ * Desktop navigation only.
+ *
+ * There is no hamburger below 900px by design — on a single-product page
+ * fed by paid social, the header's job is to stay out of the way of the buy
+ * button, and every nav control is an exit. Mobile navigation lives in the
+ * footer instead, which still carries Shop, Contact, Shipping and FAQ.
+ */
 const NAV = [
   { href: "/", label: "Home" },
   { href: "/products/pentagram-magnetite-hematite-stretch-bracelet", label: "Shop" },
@@ -32,22 +38,6 @@ function BagIcon() {
   );
 }
 
-function MenuIcon() {
-  return (
-    <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 export default function Header({
   announcement,
   saleEndsAt,
@@ -56,26 +46,8 @@ export default function Header({
   saleEndsAt: string | null;
 }) {
   const { cart, openCart } = useCart();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const pathname = usePathname();
 
   useReveal();
-
-  // Close the mobile menu on navigation.
-  useEffect(() => setMenuOpen(false), [pathname]);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    document.body.classList.add("locked");
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.classList.remove("locked");
-    };
-  }, [menuOpen]);
 
   const count = cart?.totalQuantity ?? 0;
 
@@ -102,16 +74,6 @@ export default function Header({
           <div className="header__actions">
             <button
               type="button"
-              className="iconbtn iconbtn--menu"
-              aria-label="Open menu"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen(true)}
-            >
-              <MenuIcon />
-            </button>
-
-            <button
-              type="button"
               className="iconbtn"
               onClick={openCart}
               aria-label={
@@ -128,30 +90,6 @@ export default function Header({
           </div>
         </div>
       </header>
-
-      {/* inert keeps the closed panel out of the tab order and the a11y tree. */}
-      <div className="menu" data-open={menuOpen} inert={!menuOpen}>
-        <div className="menu__scrim" onClick={() => setMenuOpen(false)} />
-        <div className="menu__panel" role="dialog" aria-label="Menu" aria-modal="true">
-          <div className="menu__head">
-            <button
-              type="button"
-              className="iconbtn"
-              onClick={() => setMenuOpen(false)}
-              aria-label="Close menu"
-            >
-              <CloseIcon />
-            </button>
-          </div>
-          <nav className="menu__links" aria-label="Mobile">
-            {NAV.map((item) => (
-              <Link key={item.label} href={item.href}>
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      </div>
     </>
   );
 }

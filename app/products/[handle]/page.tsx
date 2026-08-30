@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import BuyBox from "@/components/BuyBox";
+import LifestyleVideo from "@/components/LifestyleVideo";
 import ProductGallery from "@/components/ProductGallery";
 import { getProduct, getProductHandles } from "@/lib/shopify";
 import { OFFER, REVIEWS, reviewSummary } from "@/lib/offer-config";
@@ -241,21 +242,15 @@ export default async function ProductPage({ params }: Props) {
             </p>
           </div>
 
-          {lifestyle && (
-            <div className="why__img reveal">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={cdnImage(lifestyle.url, 1100)}
-                srcSet={`${cdnImage(lifestyle.url, 600)} 600w, ${cdnImage(lifestyle.url, 1100)} 1100w`}
-                alt={lifestyle.altText ?? `${name} worn on the wrist`}
-                width={lifestyle.width}
-                height={lifestyle.height}
-                loading="lazy"
-                decoding="async"
-                sizes="(min-width: 900px) 1100px, 100vw"
-              />
-            </div>
-          )}
+          <div className="why__img reveal">
+            <LifestyleVideo
+              src="/getfit-lifestyle.mp4"
+              // The on-wrist still stands in until the first frame decodes, so
+              // the section never opens on an empty box.
+              poster={lifestyle ? cdnImage(lifestyle.url, 1100) : ""}
+              label={`${name} video`}
+            />
+          </div>
 
           <div className="cards cards--4">
             {BENEFITS.map((b) => (
