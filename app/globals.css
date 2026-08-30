@@ -1453,9 +1453,15 @@ button {
   display: grid;
   gap: 30px;
 }
+/*
+  Auto-fit rather than a fixed four-track layout, so the footer still reads
+  properly now that it is down to two columns — and absorbs another one later
+  without needing this rule changed. Capped at 200px so the columns stay
+  compact and left-aligned instead of stretching links across the full width.
+*/
 @media (min-width: 768px) {
   .footer__grid {
-    grid-template-columns: 1.4fr repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(140px, 200px));
     gap: 40px;
   }
 }
