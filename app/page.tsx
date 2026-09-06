@@ -4,11 +4,13 @@ import SquishyBuy from "@/components/SquishyBuy";
 import { getProduct } from "@/lib/shopify";
 import { cdnImage, type Product } from "@/lib/catalog";
 import {
+  BUNDLES,
   FEATURES,
   PRODUCT,
   REVIEWS,
   REVIEWS_ARE_REAL,
   STEPS,
+  findVariant,
   ratingSummary,
 } from "@/lib/squishy-config";
 
@@ -101,6 +103,18 @@ export default async function LandingPage() {
   const hero = product?.images[0] ?? null;
   const variety = product?.images.slice(1, 9) ?? [];
 
+  /**
+   * The flash-sale flag is only truthful when a discount actually exists.
+   * Shopify currently carries a compare-at equal to the selling price, so
+   * there is no sale — and a "LIMITED-TIME FLASH SALE" badge over a product
+   * that is not discounted is fabricated urgency. Set a genuine compare-at in
+   * Shopify and the badge returns on its own.
+   */
+  const single = findVariant(product, BUNDLES[0]) ?? product?.variants[0] ?? null;
+  const hasRealSale = single?.compareAtPrice
+    ? Number(single.compareAtPrice.amount) > Number(single.price.amount)
+    : false;
+
   return (
     <>
       <script
@@ -117,7 +131,9 @@ export default async function LandingPage() {
         <div className="wrap">
           <div className="hero__grid">
             <div className="hero__media">
-              <span className="saleflag">🔥 Limited-time flash sale</span>
+              {hasRealSale && (
+                <span className="saleflag">🔥 Limited-time flash sale</span>
+              )}
               {hero ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
@@ -283,10 +299,19 @@ export default async function LandingPage() {
   );
 }
 
-/** Repeats the live offer at the close, reading the same Shopify data. */
+/**
+ * Repeats the live offer at the close.
+ *
+ * Resolves variants through the same helper the buy box uses. It previously
+ * matched hardcoded titles, which silently missed the real variant and fell
+ * back to the preview numbers — advertising "$18, 50% off" at the bottom of a
+ * page whose checkout charges $4.45. Preview values are now used only when
+ * there is no product at all, and the bundle block is omitted entirely unless
+ * a variant exists to sell it.
+ */
 function FinalOffer({ product }: { product: Product | null }) {
-  const single = product?.variants.find((v) => v.title === "1 Box");
-  const quad = product?.variants.find((v) => v.title === "4 Boxes");
+  const single = findVariant(product, BUNDLES[0]);
+  const quad = findVariant(product, BUNDLES[2]);
 
   const fmt = (n: number, c: string) =>
     new Intl.NumberFormat("en-US", {
@@ -297,25 +322,31 @@ function FinalOffer({ product }: { product: Product | null }) {
 
   const currency = single?.price.currencyCode ?? PRODUCT.fallback.currency;
   const now = single ? Number(single.price.amount) : PRODUCT.fallback.salePrice;
-  const was = single?.compareAtPrice
+
+  // A compare-at only counts when it is genuinely above the selling price.
+  const compareAt = single?.compareAtPrice
     ? Number(single.compareAtPrice.amount)
-    : PRODUCT.fallback.originalPrice;
-  const quadPrice = quad ? Number(quad.price.amount) : 54;
-  const off = was > now ? Math.round(((was - now) / was) * 100) : 0;
+    : product
+      ? 0
+      : PRODUCT.fallback.originalPrice;
+
+  const off = compareAt > now ? Math.round(((compareAt - now) / compareAt) * 100) : 0;
 
   return (
     <div className="final__card">
       {off > 0 && <span className="flash">🔥 {off}% off flash sale</span>}
 
-      <div className="final__prices" style={{ marginTop: 12 }}>
-        {off > 0 && <s>{fmt(was, currency)}</s>}
+      <div className="final__prices" style={{ marginTop: off > 0 ? 12 : 0 }}>
+        {off > 0 && <s>{fmt(compareAt, currency)}</s>}
         <b>{fmt(now, currency)}</b>
       </div>
 
-      <div className="final__best">
-        🔥 Best value — buy 3 get 1 free
-        <br />4 boxes for {fmt(quadPrice, currency)}
-      </div>
+      {quad && (
+        <div className="final__best">
+          🔥 Best value — buy 3 get 1 free
+          <br />4 boxes for {fmt(Number(quad.price.amount), currency)}
+        </div>
+      )}
 
       <a href="#offer" className="btn btn--light" style={{ marginTop: 16 }}>
         Get my surprise box →

@@ -11,8 +11,15 @@
  */
 
 export const PRODUCT = {
-  /** Shopify product handle. Must match the handle in the store. */
-  handle: "blind-box-squishy-mystery-box",
+  /**
+   * Shopify product handle. Must match the store exactly.
+   *
+   * Shopify generated this from the long supplier title. Renaming the product
+   * in Shopify changes the handle and will break this — set a permanent handle
+   * in the product's SEO section if you plan to retitle it.
+   */
+  handle:
+    "1000-pieces-kinds-assorted-squishy-figures-blind-box-surprise-toys-slow-rising-soft-fidget-squeeze-stress-relief-toy-random-1pcs",
 
   name: "Blind Box Squishy Mystery Box",
   tagline: "100+ possible squishy styles. Every box is a surprise.",
@@ -53,10 +60,40 @@ export type Bundle = {
   previewPrice: number;
 };
 
+/**
+ * Variant titles come from supplier feeds and carry stray whitespace and
+ * inconsistent casing — the live one is literally "Random  Only 1pcs" with a
+ * double space. Matching raw strings makes the config silently wrong in a way
+ * that never shows up on screen, so every comparison goes through this.
+ */
+export function normalizeTitle(title: string): string {
+  return title.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+/**
+ * The Shopify variant that actually sells a bundle, or null if none does.
+ *
+ * Generic over the variant shape so callers keep the full type — returning a
+ * bare `{ title }` here is what let the final CTA read prices off a value the
+ * compiler could not check.
+ */
+export function findVariant<T extends { title: string }>(
+  product: { variants: T[] } | null,
+  bundle: Bundle
+): T | null {
+  return (
+    product?.variants.find(
+      (v) => normalizeTitle(v.title) === normalizeTitle(bundle.variantTitle)
+    ) ?? null
+  );
+}
+
 export const BUNDLES: readonly Bundle[] = [
   {
     id: "single",
-    variantTitle: "1 Box",
+    // The live variant. Matching collapses whitespace and ignores case, so the
+    // double space in Shopify's "Random  Only 1pcs" does not matter.
+    variantTitle: "Random Only 1pcs",
     boxes: 1,
     heading: "1 BOX",
     subline: "Try your luck",

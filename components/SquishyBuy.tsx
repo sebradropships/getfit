@@ -9,6 +9,7 @@ import {
   FLASH_SALE,
   PRODUCT,
   TRUST,
+  findVariant,
   ratingSummary,
   type Bundle,
 } from "@/lib/squishy-config";
@@ -87,8 +88,7 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
   const offers = useMemo<Offer[]>(
     () =>
       BUNDLES.map((bundle) => {
-        const variant =
-          product?.variants.find((v) => v.title === bundle.variantTitle) ?? null;
+        const variant = findVariant(product, bundle);
 
         const amount = variant
           ? Number(variant.price.amount)
@@ -109,13 +109,24 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
 
   const live = offers.some((o) => o.variant);
 
-  // Default to the highlighted bundle — it is the offer the page is built to
-  // sell, and pre-selecting it is honest as long as the others stay one tap
-  // away.
-  const [selectedId, setSelectedId] = useState(
-    BUNDLES.find((b) => b.highlight)?.id ?? BUNDLES[0].id
-  );
-  const selected = offers.find((o) => o.bundle.id === selectedId) ?? offers[0];
+  /**
+   * Once the product is live, only bundles backed by a real variant are shown.
+   * A bundle without one cannot be sold at the price on its row, and listing
+   * an offer that cannot be bought at the stated price is worse than not
+   * listing it. Before the product exists everything renders, so the full
+   * layout is still previewable.
+   */
+  const visible = live ? offers.filter((o) => o.variant) : offers;
+
+  // Prefer the highlighted bundle, but only among the ones actually on offer.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const defaultId =
+    visible.find((o) => o.bundle.highlight)?.bundle.id ??
+    visible[0]?.bundle.id ??
+    null;
+  const activeId = selectedId ?? defaultId;
+  const selected =
+    visible.find((o) => o.bundle.id === activeId) ?? visible[0] ?? null;
 
   const [adding, setAdding] = useState(false);
   const [showBar, setShowBar] = useState(false);
@@ -137,9 +148,7 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
   }, []);
 
   const singleVariant =
-    product?.variants.find((v) => v.title === BUNDLES[0].variantTitle) ??
-    product?.variants[0] ??
-    null;
+    findVariant(product, BUNDLES[0]) ?? product?.variants[0] ?? null;
 
   const unitDiscount = singleVariant ? discount(singleVariant) : null;
 
@@ -149,11 +158,14 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
     ? Number(singleVariant.price.amount)
     : BUNDLES[0].previewPrice;
   const unitPrice = money(unitAmount, currency);
-  const unitWas = singleVariant?.compareAtPrice
-    ? formatMoney(singleVariant.compareAtPrice)
-    : !singleVariant
-      ? money(PRODUCT.fallback.originalPrice, currency)
-      : null;
+  // Only strike a "was" price through when it is genuinely higher. Shopify
+  // currently carries a compare-at equal to the price, which would otherwise
+  // render "$4.45 $4.45" and imply a discount that does not exist.
+  const unitWas = singleVariant
+    ? unitDiscount?.hasDiscount && singleVariant.compareAtPrice
+      ? formatMoney(singleVariant.compareAtPrice)
+      : null
+    : money(PRODUCT.fallback.originalPrice, currency);
 
   const rating = ratingSummary();
   const stock = selected?.variant
@@ -236,9 +248,9 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
         )}
 
         <div className="bundles" role="radiogroup" aria-label="Choose your bundle">
-          {offers.map((offer) => {
+          {visible.map((offer) => {
             const { bundle } = offer;
-            const isOn = bundle.id === selectedId;
+            const isOn = bundle.id === activeId;
             return (
               <button
                 key={bundle.id}
@@ -290,11 +302,13 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
           </p>
         )}
 
-        {live && !selected?.variant && (
+        {live && visible.length < BUNDLES.length && (
           <p className="soldout">
-            This bundle isn&rsquo;t set up in Shopify yet, so it can&rsquo;t be
-            ordered. Add a <b>{selected?.bundle.variantTitle}</b> variant to
-            enable it.
+            Only the bundles that exist in Shopify are shown. Add{" "}
+            {BUNDLES.filter((b) => !visible.some((v) => v.bundle.id === b.id))
+              .map((b) => `"${b.variantTitle}"`)
+              .join(" and ")}{" "}
+            as variants to offer them.
           </p>
         )}
 
