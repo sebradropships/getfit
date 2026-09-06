@@ -1,37 +1,39 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 
 import CartProvider from "@/components/CartProvider";
 import CartDrawer from "@/components/CartDrawer";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import { OFFER } from "@/lib/offer-config";
 
 /**
  * Self-hosted at build time by next/font — no runtime request to Google, no
- * layout shift, and only the weights actually used are shipped.
+ * layout shift, and only the weights used are shipped.
  */
-const inter = Inter({
+const display = Fredoka({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  variable: "--font-sans",
+  weight: ["500", "600", "700"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const body = Nunito({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-body",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://getfit.example"),
-  title: {
-    default: "GetFit — Magnetite & Hematite Stretch Bracelet",
-    template: "%s | GetFit",
-  },
+  metadataBase: new URL("https://squishy.example"),
+  title: "Blind Box Squishy Mystery Box",
   description:
-    "A minimalist magnetic stone stretch bracelet designed for everyday wear, symbolic style and effortless comfort.",
+    "100+ possible squishy styles. Every box is a surprise. Open, squish, collect.",
   robots: { index: true, follow: true },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#faf9f7",
+  themeColor: "#ff3fa4",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -40,14 +42,10 @@ export const viewport: Viewport = {
 /**
  * Deliberately synchronous.
  *
- * Awaiting the cart here would make the root layout suspend. Every Server
- * Action re-renders the current route, so the layout would re-suspend on each
- * one and React would tear down and remount the entire client tree beneath it
- * — losing the open cart drawer, the quantity selector and any in-flight state
- * on every add to cart. Keeping it synchronous also takes a blocking Shopify
- * round-trip out of the render path for every page.
- *
- * CartProvider hydrates the cart itself on mount instead.
+ * Awaiting the cart here would make the layout suspend, and since every Server
+ * Action re-renders the route it would re-suspend on each one — tearing down
+ * and remounting the client tree, which closes the cart drawer mid-purchase.
+ * CartProvider hydrates the cart itself on mount.
  */
 export default function RootLayout({
   children,
@@ -55,23 +53,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body>
         <a className="skip" href="#main">
           Skip to content
         </a>
 
         <CartProvider>
-          <Header
-            announcement={OFFER.announcement}
-            saleEndsAt={OFFER.saleEndsAt}
-          />
+          <Header />
           <main id="main">{children}</main>
-          <Footer />
-          <CartDrawer
-            shopHref={`/products/${OFFER.featuredHandle}`}
-            freeShippingThreshold={OFFER.freeShippingThreshold}
-          />
+          <CartDrawer shopHref="#offer" freeShippingThreshold={null} />
         </CartProvider>
       </body>
     </html>

@@ -8,7 +8,13 @@ import type {
   ProductImage,
   Variant,
 } from "./catalog";
-import { isImageAllowed } from "./offer-config";
+/**
+ * The previous product carried a hardcoded blocklist because four supplier
+ * photos implied a weight-loss claim. This product has no such media, so
+ * images pass through unfiltered. If supplier imagery is ever added that makes
+ * a claim the product can't support, filter it here — and delete it in Shopify
+ * too, since product feeds never run this code.
+ */
 
 const API_VERSION = "2025-07";
 
@@ -133,11 +139,8 @@ type RawProduct = Omit<Product, "images" | "variants"> & {
  * product feeds and the Shopify-hosted storefront never run this code.
  */
 function normalize(raw: RawProduct): Product {
-  const images = raw.images.nodes.filter((img) => isImageAllowed(img.url));
-  const featured =
-    raw.featuredImage && isImageAllowed(raw.featuredImage.url)
-      ? raw.featuredImage
-      : (images[0] ?? null);
+  const images = raw.images.nodes;
+  const featured = raw.featuredImage ?? images[0] ?? null;
 
   return {
     ...raw,
@@ -225,10 +228,7 @@ function normalizeCart(raw: RawCart): Cart {
     merchandiseId: line.merchandise.id,
     title: line.merchandise.product.title,
     variantTitle: line.merchandise.title,
-    image:
-      line.merchandise.image && isImageAllowed(line.merchandise.image.url)
-        ? line.merchandise.image
-        : null,
+    image: line.merchandise.image ?? null,
     price: line.merchandise.price,
     quantityAvailable: line.merchandise.quantityAvailable ?? null,
   }));
