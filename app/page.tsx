@@ -282,7 +282,12 @@ export default async function LandingPage() {
             ))}
           </div>
 
-          {REVIEWS_ARE_REAL ? (
+          {/*
+            Renders only what REVIEWS actually holds. With none, the section
+            invites the first one rather than faking a wall of them — which
+            also reads as a launch, not as a shop nobody has bought from.
+          */}
+          {REVIEWS_ARE_REAL && REVIEWS.length > 0 ? (
             <div className="reviews">
               {REVIEWS.map((r) => (
                 <div className="review reveal" key={r.id}>
@@ -295,27 +300,19 @@ export default async function LandingPage() {
               ))}
             </div>
           ) : (
-            <>
-              {/*
-                Sample layout only. Marked in the UI so no shopper can read
-                these as genuine testimonials, and no rating or review count is
-                shown anywhere until REVIEWS_ARE_REAL is true.
-              */}
-              <div className="samplebar">
-                ⚠️ Sample layout — replace with real reviews before running ads.
+            <div className="firstreview reveal">
+              <div className="firstreview__emoji" aria-hidden="true">
+                🫶
               </div>
-              <div className="reviews">
-                {REVIEWS.map((r) => (
-                  <div className="review review--sample" key={r.id}>
-                    <span className="stars" aria-hidden="true">
-                      {"★".repeat(r.rating)}
-                    </span>
-                    <p>{r.body}</p>
-                    <div className="review__who">{r.author}</div>
-                  </div>
-                ))}
-              </div>
-            </>
+              <h3>Be one of the first</h3>
+              <p>
+                We just launched. Order a box, open it, and tell us what you
+                got — your experience could inspire someone else&rsquo;s.
+              </p>
+              <p className="firstreview__note">
+                Every review we publish is written by a real customer.
+              </p>
+            </div>
           )}
         </div>
       </section>

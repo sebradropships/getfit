@@ -261,26 +261,20 @@ export type Review = {
  */
 export const REVIEWS_ARE_REAL = false;
 
-export const REVIEWS: readonly Review[] = [
-  {
-    id: "s1",
-    rating: 5,
-    body: "Opening the box was honestly half the fun 😂",
-    author: "Sample review",
-  },
-  {
-    id: "s2",
-    rating: 5,
-    body: "I had no idea which one I'd get. The surprise made it so much better.",
-    author: "Sample review",
-  },
-  {
-    id: "s3",
-    rating: 5,
-    body: "Got multiple boxes so I could see what I would get.",
-    author: "Sample review",
-  },
-];
+/**
+ * Empty until real customers have written them.
+ *
+ * As of this writing the store has 0 orders and 0 customers, so there is no
+ * genuine review that could go here. Do not populate this with invented
+ * entries: 16 CFR Part 465 makes writing or disseminating fake consumer
+ * reviews a violation carrying civil penalties per review, and Canada's
+ * Competition Act covers false testimonials.
+ *
+ * When you do have real ones, add them here and set REVIEWS_ARE_REAL to true —
+ * the star rating, review count and aggregateRating markup all switch on
+ * together and are computed from these entries.
+ */
+export const REVIEWS: readonly Review[] = [];
 
 export function ratingSummary() {
   if (!REVIEWS_ARE_REAL || REVIEWS.length === 0) {
