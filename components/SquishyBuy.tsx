@@ -29,6 +29,12 @@ type Offer = {
    * and nothing is shown.
    */
   savePercent: number;
+  /**
+   * The struck-through figure: what this many boxes cost bought individually,
+   * at the price on this very page. Null when there is no saving, so no row
+   * ever shows a crossed-out number it cannot justify.
+   */
+  wasPrice: string | null;
 };
 
 function money(amount: number, currency: string) {
@@ -122,6 +128,7 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
         price: money(amount, currency),
         perBox: money(Math.round((amount / bundle.boxes) * 100) / 100, currency),
         savePercent,
+        wasPrice: savePercent > 0 ? money(boughtSingly, currency) : null,
       };
     });
   }, [product, currency]);
@@ -302,6 +309,9 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
                   <span className="bundle__sub">{bundle.subline}</span>
                 </span>
                 <span className="bundle__price">
+                  {offer.wasPrice && (
+                    <s className="bundle__was">{offer.wasPrice}</s>
+                  )}
                   <b>{offer.price}</b>
                   <span>
                     {offer.savePercent > 0
@@ -318,6 +328,19 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
             );
           })}
         </div>
+
+        {/*
+          States what the struck figures are, once, rather than leaving a
+          crossed-out number to be read as a former price. They are the cost of
+          the same boxes bought one at a time at the price on this page, which
+          is why the comparison holds up.
+        */}
+        {offers.some((o) => o.wasPrice) && (
+          <p className="bundles__note">
+            Struck prices are the cost of the same number of boxes bought
+            individually at {unitPrice} each.
+          </p>
+        )}
 
         <div ref={ctaRef} style={{ marginTop: 16 }}>
           <button
