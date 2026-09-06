@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import DiscountSticker from "./DiscountSticker";
 import { useCart } from "./CartProvider";
 import { discount, formatMoney, lowStock, type Product, type Variant } from "@/lib/catalog";
 import {
@@ -242,11 +243,19 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
         */}
         {FLASH_SALE.enabled &&
           (unitDiscount?.hasDiscount ? (
-            <span className="flash">
-              🔥 {unitDiscount.percent}% OFF {FLASH_SALE.label}
-            </span>
+            <DiscountSticker
+              className="flash"
+              percent={unitDiscount.percent}
+              before="🔥 "
+              after={`% OFF ${FLASH_SALE.label}`}
+            />
           ) : bestSaving > 0 ? (
-            <span className="flash">🔥 Up to {bestSaving}% off</span>
+            <DiscountSticker
+              className="flash"
+              percent={bestSaving}
+              before="🔥 Up to "
+              after="% off"
+            />
           ) : null)}
 
         {/*

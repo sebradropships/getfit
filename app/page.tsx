@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 
+import DiscountSticker from "@/components/DiscountSticker";
 import SquishyBuy from "@/components/SquishyBuy";
 import { getProduct } from "@/lib/shopify";
 import { cdnImage, type Product } from "@/lib/catalog";
@@ -122,15 +123,9 @@ export default async function LandingPage() {
   const bestSaving = bestBundleSaving(product);
 
   /*
-    The ribbon deliberately avoids "limited-time". Nothing here is time-limited
-    — COUNTDOWN.endsAt is null and there is no campaign deadline — so claiming
-    urgency would be inventing it. It states the saving, which is true.
+    The ribbon deliberately avoids "limited-time" unless a real compare-at
+    exists. It states the saving, which is true either way.
   */
-  const ribbon = hasRealSale
-    ? "🔥 Flash sale"
-    : bestSaving > 0
-      ? `🔥 Save up to ${bestSaving}%`
-      : null;
 
   return (
     <>
@@ -154,7 +149,16 @@ export default async function LandingPage() {
               is the LCP element on mobile.
             */}
             <div className="hero__media">
-              {ribbon && <span className="saleflag">{ribbon}</span>}
+              {hasRealSale ? (
+                <span className="saleflag">🔥 Flash sale</span>
+              ) : bestSaving > 0 ? (
+                <DiscountSticker
+                  className="saleflag"
+                  percent={bestSaving}
+                  before="🔥 Save up to "
+                  after="%"
+                />
+              ) : null}
               <Image
                 src={PRODUCT.images.hero.src}
                 alt={PRODUCT.images.hero.alt}

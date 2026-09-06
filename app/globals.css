@@ -339,6 +339,57 @@ button {
 }
 
 /* Floating decorations. Purely decorative, so aria-hidden and pointer-none. */
+/*
+  Sticker entrance: pop out to 1.5x, settle back to 1x, then a short
+  side-to-side jiggle that damps out. Percentages are sequenced so the scale is
+  finished before the rotation starts — overlapping them reads as a wobble
+  rather than two distinct beats.
+
+  transform only, so it composites on the GPU and never triggers layout.
+*/
+@keyframes sticker-pop {
+  0% {
+    transform: scale(0.4) rotate(0deg);
+    opacity: 0;
+  }
+  35% {
+    transform: scale(1.5) rotate(0deg);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1) rotate(0deg);
+  }
+  70% {
+    transform: scale(1.04) rotate(-7deg);
+  }
+  80% {
+    transform: scale(1.02) rotate(6deg);
+  }
+  88% {
+    transform: rotate(-4deg);
+  }
+  94% {
+    transform: rotate(2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.sticker-pop {
+  animation: sticker-pop 0.9s var(--ease) both;
+  transform-origin: center;
+  will-change: transform;
+}
+
+/* The component skips the count-up under reduced motion; this covers the
+   transform for anyone whose preference changes after mount. */
+@media (prefers-reduced-motion: reduce) {
+  .sticker-pop {
+    animation: none;
+  }
+}
+
 .floaties {
   position: absolute;
   inset: 0;
