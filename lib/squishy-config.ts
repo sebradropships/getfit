@@ -22,7 +22,7 @@ export const PRODUCT = {
     "1000-pieces-kinds-assorted-squishy-figures-blind-box-surprise-toys-slow-rising-soft-fidget-squeeze-stress-relief-toy-random-1pcs",
 
   name: "Blind Box Squishy Mystery Box",
-  tagline: "100+ possible squishy styles. Every box is a surprise.",
+  tagline: "1000+ possible squishy styles. Every box is a surprise.",
 
   /**
    * Supplied brand imagery, used in preference to the Shopify media because
@@ -217,6 +217,26 @@ export const COUNTDOWN = {
   label: "OFFER ENDS IN",
 } as const;
 
+/**
+ * Strip above the header.
+ *
+ * Every line has to be true on its own, because this sits above the fold on
+ * every visit. No countdown and no "ends soon" — there is no campaign deadline
+ * (COUNTDOWN.endsAt is null), so urgency here would be invented. The savings
+ * line matches what the bundle rows actually compute.
+ */
+export const ANNOUNCEMENT = {
+  enabled: true,
+  // Widened rather than `as const` so the length isn't a literal type — the
+  // component's empty-list guard has to stay meaningful as this list is edited.
+  messages: [
+    "🎁 EVERY BOX IS A SURPRISE",
+    "🌈 1000+ POSSIBLE STYLES",
+    "🔥 BUY 2 GET 2 FREE — SAVE 50%",
+    "👀 YOU NEVER KNOW WHAT YOU'LL GET",
+  ] as readonly string[],
+} as const;
+
 export const FLASH_SALE = {
   enabled: true,
   /** Percentage is computed from live Shopify prices, never written here. */
@@ -324,7 +344,7 @@ export const FEATURES = [
   },
   {
     emoji: "🌈",
-    title: "100+ STYLES",
+    title: "1000+ STYLES",
     text: "Animals, fruit, desserts, galaxy glitter and more.",
   },
   {

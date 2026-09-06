@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 
+import AnnouncementStrip from "@/components/AnnouncementStrip";
 import CartProvider from "@/components/CartProvider";
 import CartDrawer from "@/components/CartDrawer";
 import Header from "@/components/Header";
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://squishy.example"),
   title: "Blind Box Squishy Mystery Box",
   description:
-    "100+ possible squishy styles. Every box is a surprise. Open, squish, collect.",
+    "1000+ possible squishy styles. Every box is a surprise. Open, squish, collect.",
   robots: { index: true, follow: true },
 };
 
@@ -60,6 +61,7 @@ export default function RootLayout({
         </a>
 
         <CartProvider>
+          <AnnouncementStrip />
           <Header />
           <main id="main">{children}</main>
           <CartDrawer shopHref="#offer" freeShippingThreshold={null} />

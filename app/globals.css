@@ -1231,6 +1231,69 @@ body.locked {
   overflow: hidden;
 }
 
+/* --------------------------------------------------------------- ticker */
+
+.ticker {
+  background: var(--grad-party);
+  color: var(--white);
+  overflow: hidden;
+  /* Not sticky. It scrolls away and the header takes over the top edge,
+     so the strip never competes with the buy bar for screen height. */
+  position: relative;
+}
+/* Fades the ends so messages enter and leave rather than being sliced off. */
+.ticker::before,
+.ticker::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 34px;
+  z-index: 1;
+  pointer-events: none;
+}
+.ticker::before {
+  left: 0;
+  background: linear-gradient(90deg, var(--pink), transparent);
+}
+.ticker::after {
+  right: 0;
+  background: linear-gradient(270deg, var(--blue), transparent);
+}
+
+.ticker__track {
+  display: flex;
+  width: max-content;
+  animation: ticker 26s linear infinite;
+}
+.ticker__list {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ticker__item {
+  padding: 9px 26px;
+  font-family: var(--font-display), sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  white-space: nowrap;
+}
+
+/* The list is rendered twice, so -50% is exactly one full set. */
+@keyframes ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker__track {
+    animation: none;
+  }
+}
+
 /* ---------------------------------------------------------------- topbar */
 
 .topbar {
