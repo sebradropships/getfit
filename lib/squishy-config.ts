@@ -135,6 +135,47 @@ export const BUNDLES: readonly Bundle[] = [
  * Set to null to hide the countdown entirely. That is the correct setting when
  * there is no real deadline; a fabricated one is a deceptive practice.
  */
+/**
+ * The largest genuine saving available, as a percentage.
+ *
+ * Measured against buying the same number of boxes one at a time at the live
+ * single-box price — a like-for-like comparison with a price actually charged
+ * on this page. That is what makes it defensible where a compare-at "regular
+ * price" the product has never sold at would not be: under both the FTC's
+ * pricing guides and Canada's Competition Act s.74.01, a reference price has
+ * to be one genuinely offered.
+ *
+ * Returns 0 when no bundle beats buying singly, and every badge that depends
+ * on it disappears on its own.
+ */
+export function bestBundleSaving(
+  product: {
+    variants: Array<{ title: string; price: { amount: string } }>;
+  } | null
+): number {
+  const unit = findVariant(product, BUNDLES[0]);
+  if (!unit) return 0;
+
+  const unitAmount = Number(unit.price.amount);
+  if (!Number.isFinite(unitAmount) || unitAmount <= 0) return 0;
+
+  let best = 0;
+  for (const bundle of BUNDLES) {
+    const variant = findVariant(product, bundle);
+    if (!variant) continue;
+
+    const amount = Number(variant.price.amount);
+    const boughtSingly = unitAmount * bundle.boxes;
+    if (boughtSingly > amount) {
+      best = Math.max(
+        best,
+        Math.round(((boughtSingly - amount) / boughtSingly) * 100)
+      );
+    }
+  }
+  return best;
+}
+
 export const COUNTDOWN = {
   endsAt: null as string | null,
   label: "OFFER ENDS IN",

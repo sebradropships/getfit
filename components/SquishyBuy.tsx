@@ -9,6 +9,7 @@ import {
   FLASH_SALE,
   PRODUCT,
   TRUST,
+  bestBundleSaving,
   findVariant,
   ratingSummary,
   type Bundle,
@@ -181,6 +182,7 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
       : null
     : money(PRODUCT.fallback.originalPrice, currency);
 
+  const bestSaving = bestBundleSaving(product);
   const rating = ratingSummary();
   const stock = selected?.variant
     ? lowStock(selected.variant.quantityAvailable)
@@ -217,11 +219,24 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
       )}
 
       <div className="pricebar" id="offer">
-        {FLASH_SALE.enabled && unitDiscount?.hasDiscount && (
-          <span className="flash">
-            🔥 {unitDiscount.percent}% OFF {FLASH_SALE.label}
-          </span>
-        )}
+        {/*
+          Two different claims, and they are not interchangeable.
+
+          A compare-at discount is a markdown off a former price, so it only
+          renders when Shopify carries a compare-at genuinely above the selling
+          price. Otherwise we fall back to the bundle saving, which is measured
+          against buying the same boxes singly at today's price — real, and
+          true regardless of whether a former price exists. When neither holds,
+          no badge shows at all.
+        */}
+        {FLASH_SALE.enabled &&
+          (unitDiscount?.hasDiscount ? (
+            <span className="flash">
+              🔥 {unitDiscount.percent}% OFF {FLASH_SALE.label}
+            </span>
+          ) : bestSaving > 0 ? (
+            <span className="flash">🔥 Up to {bestSaving}% off</span>
+          ) : null)}
 
         {/*
           The headline always anchors on the price of ONE box.

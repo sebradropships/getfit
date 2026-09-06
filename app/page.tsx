@@ -10,6 +10,7 @@ import {
   REVIEWS,
   REVIEWS_ARE_REAL,
   STEPS,
+  bestBundleSaving,
   findVariant,
   ratingSummary,
 } from "@/lib/squishy-config";
@@ -115,6 +116,20 @@ export default async function LandingPage() {
     ? Number(single.compareAtPrice.amount) > Number(single.price.amount)
     : false;
 
+  // Falls back to the genuine bundle saving when there is no compare-at.
+  const bestSaving = bestBundleSaving(product);
+
+  /*
+    The ribbon deliberately avoids "limited-time". Nothing here is time-limited
+    — COUNTDOWN.endsAt is null and there is no campaign deadline — so claiming
+    urgency would be inventing it. It states the saving, which is true.
+  */
+  const ribbon = hasRealSale
+    ? "🔥 Flash sale"
+    : bestSaving > 0
+      ? `🔥 Save up to ${bestSaving}%`
+      : null;
+
   return (
     <>
       <script
@@ -131,9 +146,7 @@ export default async function LandingPage() {
         <div className="wrap">
           <div className="hero__grid">
             <div className="hero__media">
-              {hasRealSale && (
-                <span className="saleflag">🔥 Limited-time flash sale</span>
-              )}
+              {ribbon && <span className="saleflag">{ribbon}</span>}
               {hero ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
@@ -331,12 +344,17 @@ function FinalOffer({ product }: { product: Product | null }) {
       : PRODUCT.fallback.originalPrice;
 
   const off = compareAt > now ? Math.round(((compareAt - now) / compareAt) * 100) : 0;
+  const saving = bestBundleSaving(product);
 
   return (
     <div className="final__card">
-      {off > 0 && <span className="flash">🔥 {off}% off flash sale</span>}
+      {off > 0 ? (
+        <span className="flash">🔥 {off}% off flash sale</span>
+      ) : saving > 0 ? (
+        <span className="flash">🔥 Up to {saving}% off</span>
+      ) : null}
 
-      <div className="final__prices" style={{ marginTop: off > 0 ? 12 : 0 }}>
+      <div className="final__prices" style={{ marginTop: 12 }}>
         {off > 0 && <s>{fmt(compareAt, currency)}</s>}
         <b>{fmt(now, currency)}</b>
       </div>
