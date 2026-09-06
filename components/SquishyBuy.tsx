@@ -21,6 +21,13 @@ type Offer = {
   /** Formatted price — real when the variant exists, preview otherwise. */
   price: string;
   perBox: string;
+  /**
+   * Saving against buying the same number of boxes one at a time, at the live
+   * single-box price. Comparing like for like against a price actually charged
+   * on this page — not against an invented "regular" price. 0 means no saving,
+   * and nothing is shown.
+   */
+  savePercent: number;
 };
 
 function money(amount: number, currency: string) {
@@ -85,27 +92,34 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
    * variant is missing can still be previewed, but cannot be bought — we will
    * not take an order at a price Shopify has not agreed to.
    */
-  const offers = useMemo<Offer[]>(
-    () =>
-      BUNDLES.map((bundle) => {
-        const variant = findVariant(product, bundle);
+  const offers = useMemo<Offer[]>(() => {
+    const unitVariant = findVariant(product, BUNDLES[0]);
+    const unitAmount = unitVariant
+      ? Number(unitVariant.price.amount)
+      : BUNDLES[0].previewPrice;
 
-        const amount = variant
-          ? Number(variant.price.amount)
-          : bundle.previewPrice;
+    return BUNDLES.map((bundle) => {
+      const variant = findVariant(product, bundle);
 
-        return {
-          bundle,
-          variant,
-          price: money(amount, currency),
-          perBox: money(
-            Math.round((amount / bundle.boxes) * 100) / 100,
-            currency
-          ),
-        };
-      }),
-    [product, currency]
-  );
+      const amount = variant
+        ? Number(variant.price.amount)
+        : bundle.previewPrice;
+
+      const boughtSingly = unitAmount * bundle.boxes;
+      const savePercent =
+        boughtSingly > amount
+          ? Math.round(((boughtSingly - amount) / boughtSingly) * 100)
+          : 0;
+
+      return {
+        bundle,
+        variant,
+        price: money(amount, currency),
+        perBox: money(Math.round((amount / bundle.boxes) * 100) / 100, currency),
+        savePercent,
+      };
+    });
+  }, [product, currency]);
 
   const live = offers.some((o) => o.variant);
 
@@ -271,8 +285,15 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
                 <span className="bundle__price">
                   <b>{offer.price}</b>
                   <span>
-                    {bundle.boxes} box{bundle.boxes === 1 ? "" : "es"}
+                    {offer.savePercent > 0
+                      ? `${offer.perBox} each`
+                      : `${bundle.boxes} box${bundle.boxes === 1 ? "" : "es"}`}
                   </span>
+                  {offer.savePercent > 0 && (
+                    <span className="bundle__save">
+                      Save {offer.savePercent}%
+                    </span>
+                  )}
                 </span>
               </button>
             );

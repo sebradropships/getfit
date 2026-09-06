@@ -587,6 +587,20 @@ button {
   margin-top: 3px;
 }
 
+.bundle__save {
+  display: inline-block;
+  margin-top: 5px;
+  font-family: var(--font-display), sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #0d5a41;
+  background: var(--mint);
+  padding: 3px 8px;
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+}
+
 .bundle__badge {
   position: absolute;
   top: -11px;

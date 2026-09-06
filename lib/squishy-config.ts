@@ -91,33 +91,36 @@ export function findVariant<T extends { title: string }>(
 export const BUNDLES: readonly Bundle[] = [
   {
     id: "single",
-    // The live variant. Matching collapses whitespace and ignores case, so the
-    // double space in Shopify's "Random  Only 1pcs" does not matter.
-    variantTitle: "Random Only 1pcs",
+    variantTitle: "1 Box",
     boxes: 1,
     heading: "1 BOX",
     subline: "Try your luck",
-    previewPrice: 18,
+    previewPrice: 36,
   },
   {
     id: "double",
     variantTitle: "2 Boxes",
     boxes: 2,
     heading: "2 BOXES",
-    // Two boxes is simply twice one box. Saying "save more" here would be a
-    // discount that does not exist.
     subline: "DOUBLE THE SURPRISE",
-    previewPrice: 36,
+    previewPrice: 54,
   },
   {
     id: "quad",
     variantTitle: "4 Boxes",
     boxes: 4,
-    heading: "BUY 3 GET 1 FREE",
-    subline: "GET 4 BOXES — PAY FOR 3",
+    /*
+      At $36 a box, $72 buys two — and you receive four. So this is buy 2 get
+      2 free, not buy 3 get 1 free; the latter would be $108. The accurate
+      claim also happens to be the more generous one. If the 4-box price ever
+      changes, update this wording with it, or use the computed savings figure
+      the bundle row already shows.
+    */
+    heading: "BUY 2 GET 2 FREE",
+    subline: "GET 4 BOXES — PAY FOR 2",
     badge: "BEST VALUE 🔥",
     highlight: true,
-    previewPrice: 54,
+    previewPrice: 72,
   },
 ];
 

@@ -341,10 +341,16 @@ function FinalOffer({ product }: { product: Product | null }) {
         <b>{fmt(now, currency)}</b>
       </div>
 
+      {/*
+        Wording comes from the bundle config rather than being written twice.
+        It previously read "buy 3 get 1 free" here while the offer had changed
+        to buy 2 get 2 free, so the close contradicted the buy box.
+      */}
       {quad && (
         <div className="final__best">
-          🔥 Best value — buy 3 get 1 free
-          <br />4 boxes for {fmt(Number(quad.price.amount), currency)}
+          🔥 Best value — {BUNDLES[2].heading}
+          <br />
+          {BUNDLES[2].boxes} boxes for {fmt(Number(quad.price.amount), currency)}
         </div>
       )}
 
