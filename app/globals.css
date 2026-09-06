@@ -1288,6 +1288,57 @@ body.locked {
   }
 }
 
+/* Countdown state — replaces the marquee while a real deadline is running. */
+.ticker__live {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  text-align: center;
+}
+.ticker__flame {
+  font-size: 13px;
+  animation: flicker 1.6s ease-in-out infinite;
+}
+@keyframes flicker {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.16);
+    opacity: 0.82;
+  }
+}
+.ticker__label {
+  font-family: var(--font-display), sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.ticker__clock {
+  font-family: var(--font-display), sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  /* Tabular figures so the centred bar doesn't jitter sideways every second. */
+  font-variant-numeric: tabular-nums;
+  background: rgba(255, 255, 255, 0.22);
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+}
+@media (max-width: 359px) {
+  .ticker__label {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+  .ticker__clock {
+    font-size: 13px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ticker__track {
     animation: none;

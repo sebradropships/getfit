@@ -212,9 +212,25 @@ export function bestBundleSaving(
   return best;
 }
 
+/**
+ * Promotional deadline.
+ *
+ * ONE FIXED INSTANT, not a per-visitor duration. Every visitor counts to the
+ * same moment, and when it passes the countdown is gone — it does not restart.
+ * A timer that resets each session never actually expires, which makes the
+ * urgency fabricated and deceptive under FTC Act Section 5.
+ *
+ * For this to be truthful, something has to genuinely change at this moment:
+ * set a real compare-at price in Shopify now, and remove it when the deadline
+ * passes. If the price is identical before and after, the countdown is
+ * counting to nothing.
+ *
+ * To run a different window, change this one line. Set it to null to remove
+ * the countdown entirely.
+ */
 export const COUNTDOWN = {
-  endsAt: null as string | null,
-  label: "OFFER ENDS IN",
+  endsAt: "2026-09-06T18:00:00-07:00" as string | null,
+  label: "FLASH SALE ENDS IN",
 } as const;
 
 /**
