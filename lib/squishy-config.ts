@@ -24,6 +24,42 @@ export const PRODUCT = {
   name: "Blind Box Squishy Mystery Box",
   tagline: "100+ possible squishy styles. Every box is a surprise.",
 
+  /**
+   * Supplied brand imagery, used in preference to the Shopify media because
+   * these are shot for the page. Shopify images still feed the variety strip.
+   *
+   * These are illustrative of the range, not of one specific box — contents
+   * are randomly assorted, which the legal line at the foot of the page states
+   * plainly. Keep it that way: showing a fixed set as though it were what
+   * arrives would misrepresent a blind box.
+   */
+  images: {
+    hero: {
+      src: "/squishy/hero-box.jpg",
+      alt: "A mystery box overflowing with colourful squishy toys — panda, unicorn, donut, cat and more",
+      width: 596,
+      height: 869,
+    },
+    spread: {
+      src: "/squishy/mystery-spread.jpg",
+      alt: "A question-mark mystery box surrounded by dozens of different squishies",
+      width: 594,
+      height: 869,
+    },
+    grid: {
+      src: "/squishy/styles-grid.jpg",
+      alt: "Rows of squishies — animals, fruit, desserts, rainbows and more",
+      width: 576,
+      height: 869,
+    },
+    unboxing: {
+      src: "/squishy/unboxing.jpg",
+      alt: "Hands opening a squishy mystery box on a soft blanket",
+      width: 590,
+      height: 869,
+    },
+  },
+
   /** Preview-only fallbacks. Shopify wins whenever it has the product. */
   fallback: {
     currency: "USD",
@@ -265,33 +301,46 @@ export const STEPS = [
     n: "01",
     emoji: "🎁",
     title: "PICK YOUR BOX",
-    text: "Choose how many surprises you want.",
+    text: "One box, or four. More boxes, more surprises.",
   },
   {
     n: "02",
     emoji: "👀",
     title: "OPEN THE MYSTERY",
-    text: "You never know which squishy you'll discover.",
+    text: "Panda? Unicorn? Boba tea? Nobody knows until you open it.",
   },
   {
     n: "03",
     emoji: "💖",
     title: "SQUISH & COLLECT",
-    text: "Discover your favorite and start your collection.",
+    text: "Find your favourite. Then go hunting for the rest.",
   },
 ] as const;
 
+/**
+ * Kept concrete rather than generic. "Slow-rising" and the style categories
+ * come from the actual product listing and the supplied photography — claims
+ * we can point at, not filler.
+ */
 export const FEATURES = [
-  { emoji: "🎁", title: "MYSTERY INSIDE", text: "Every box is a surprise." },
-  { emoji: "🌈", title: "100+ STYLES", text: "So many designs to discover." },
+  {
+    emoji: "🎁",
+    title: "MYSTERY INSIDE",
+    text: "Sealed until you open it. That's the whole point.",
+  },
+  {
+    emoji: "🌈",
+    title: "100+ STYLES",
+    text: "Animals, fruit, desserts, galaxy glitter and more.",
+  },
   {
     emoji: "🤏",
     title: "SATISFYING SQUISH",
-    text: "Different shapes and textures to explore.",
+    text: "Soft, slow-rising, weirdly hard to put down.",
   },
   {
     emoji: "💖",
     title: "COLLECT THEM ALL",
-    text: "Get more boxes and discover more styles.",
+    text: "Got a double? Trade it. Got a favourite? Hunt for more.",
   },
 ] as const;

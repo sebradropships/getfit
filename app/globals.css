@@ -296,10 +296,29 @@ button {
   border: 3px solid var(--white);
   box-shadow: 0 18px 44px -18px rgba(123, 44, 255, 0.4);
 }
+/*
+  The source shots are tall (roughly 2:3). Rendered at their natural ratio a
+  phone would give the image ~570px of an 844px screen, pushing the price and
+  the buy button off the first viewport — the one thing this page cannot
+  afford. Square on mobile keeps the box as the subject while leaving room for
+  the hook and the offer; the taller crop returns on desktop, where the hero is
+  a side-by-side split and the height is free.
+*/
 .hero__media img {
   width: 100%;
+  /* height:auto is load-bearing, not tidiness. next/image emits width and
+     height attributes, and aspect-ratio is ignored when both dimensions are
+     definite — without this the crop silently does nothing and the image
+     renders at its full 869px. */
+  height: auto;
   aspect-ratio: 1 / 1;
   object-fit: cover;
+  object-position: center;
+}
+@media (min-width: 900px) {
+  .hero__media img {
+    aspect-ratio: 4 / 5;
+  }
 }
 
 .saleflag {
@@ -711,23 +730,50 @@ button {
   background: var(--grad-party);
   color: var(--white);
 }
-.mystery__q {
-  font-family: var(--font-display), sans-serif;
-  font-size: clamp(76px, 26vw, 150px);
-  font-weight: 700;
-  line-height: 0.9;
-  text-shadow: 0 8px 26px rgba(0, 0, 0, 0.22);
-  animation: wobble 3.6s ease-in-out infinite;
+.mystery__grid {
+  position: relative;
+  display: grid;
+  gap: 22px;
+  align-items: center;
 }
-@keyframes wobble {
-  0%,
-  100% {
-    transform: rotate(-4deg) scale(1);
-  }
-  50% {
-    transform: rotate(4deg) scale(1.05);
+@media (min-width: 768px) {
+  .mystery__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+    text-align: left;
   }
 }
+.mystery__shot {
+  border-radius: var(--r);
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 16px 40px -18px rgba(0, 0, 0, 0.45);
+}
+.mystery__shot img {
+  width: 100%;
+  height: auto;
+}
+
+/* Two tall shots side by side on desktop, stacked on a phone. */
+.showcase {
+  display: grid;
+  gap: 12px;
+  margin-top: 26px;
+}
+@media (min-width: 768px) {
+  .showcase {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+}
+.showcase img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--r);
+  border: 3px solid var(--white);
+  box-shadow: 0 12px 30px -16px rgba(123, 44, 255, 0.55);
+}
+
 .mystery__cap {
   font-family: var(--font-display), sans-serif;
   font-size: 15px;

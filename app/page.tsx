@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 
 import SquishyBuy from "@/components/SquishyBuy";
 import { getProduct } from "@/lib/shopify";
@@ -101,8 +102,9 @@ export default async function LandingPage() {
     product = null;
   }
 
-  const hero = product?.images[0] ?? null;
-  const variety = product?.images.slice(1, 9) ?? [];
+  // The hero now comes from the brand shots, so every Shopify image is free to
+  // feed the variety strip rather than the first being spent on the hero.
+  const variety = product?.images.slice(0, 8) ?? [];
 
   /**
    * The flash-sale flag is only truthful when a discount actually exists.
@@ -145,26 +147,22 @@ export default async function LandingPage() {
 
         <div className="wrap">
           <div className="hero__grid">
+            {/*
+              The brand shot, not the Shopify media — it is the only image that
+              shows the box mid-open, which is the entire hook. next/image
+              serves AVIF/WebP and a per-breakpoint size; priority because this
+              is the LCP element on mobile.
+            */}
             <div className="hero__media">
               {ribbon && <span className="saleflag">{ribbon}</span>}
-              {hero ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={cdnImage(hero.url, 900)}
-                  srcSet={`${cdnImage(hero.url, 480)} 480w, ${cdnImage(hero.url, 900)} 900w`}
-                  alt={hero.altText ?? PRODUCT.name}
-                  width={hero.width}
-                  height={hero.height}
-                  fetchPriority="high"
-                  decoding="async"
-                  sizes="(min-width: 900px) 46vw, 100vw"
-                />
-              ) : (
-                <div className="placeholder">
-                  <span>🎁</span>
-                  <p>Product image loads from Shopify</p>
-                </div>
-              )}
+              <Image
+                src={PRODUCT.images.hero.src}
+                alt={PRODUCT.images.hero.alt}
+                width={PRODUCT.images.hero.width}
+                height={PRODUCT.images.hero.height}
+                priority
+                sizes="(min-width: 900px) 46vw, 100vw"
+              />
             </div>
 
             <div className="hero__body">
@@ -202,18 +200,54 @@ export default async function LandingPage() {
             ))}
           </div>
 
+          {/* The unboxing shot does the persuading; the copy stays out of its
+              way. On mobile it stacks under the heading rather than beside it. */}
           <div className="mystery reveal">
             <Floaties items={["✨", "⭐", "🫧", "❓"]} />
-            <div className="mystery__q" aria-hidden="true">
-              ?
+            <div className="mystery__grid">
+              <div className="mystery__shot">
+                <Image
+                  src={PRODUCT.images.unboxing.src}
+                  alt={PRODUCT.images.unboxing.alt}
+                  width={PRODUCT.images.unboxing.width}
+                  height={PRODUCT.images.unboxing.height}
+                  loading="lazy"
+                  sizes="(min-width: 768px) 44vw, 88vw"
+                />
+              </div>
+              <div className="mystery__copy">
+                <div className="mystery__cap">Which one will you get?</div>
+                <div className="mystery__count">100+ possible styles</div>
+                <p className="mystery__sub">
+                  Animals, fruit, desserts, glitter-filled galaxy balls. Every
+                  box is packed at random — so no two openings are the same.
+                </p>
+              </div>
             </div>
-            <div className="mystery__cap">Which one will you get?</div>
-            <div className="mystery__count">100+ possible styles</div>
-            <p className="mystery__sub">Every box brings a new surprise.</p>
           </div>
 
+          <div className="showcase reveal">
+            <Image
+              src={PRODUCT.images.grid.src}
+              alt={PRODUCT.images.grid.alt}
+              width={PRODUCT.images.grid.width}
+              height={PRODUCT.images.grid.height}
+              loading="lazy"
+              sizes="(min-width: 768px) 50vw, 100vw"
+            />
+            <Image
+              src={PRODUCT.images.spread.src}
+              alt={PRODUCT.images.spread.alt}
+              width={PRODUCT.images.spread.width}
+              height={PRODUCT.images.spread.height}
+              loading="lazy"
+              sizes="(min-width: 768px) 50vw, 100vw"
+            />
+          </div>
+
+          {/* Shopify's own media, when there is any beyond the first. */}
           {variety.length > 0 && (
-            <div className="strip" aria-label="Some of the styles">
+            <div className="strip" aria-label="More styles">
               {variety.map((img, i) => (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
