@@ -26,7 +26,7 @@ const body = Nunito({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://squishy.example"),
+  metadataBase: new URL("https://www.viraltoys.us"),
   title: "Blind Box Squishy Mystery Box",
   description:
     "1000+ possible squishy styles. Every box is a surprise. Open, squish, collect.",
