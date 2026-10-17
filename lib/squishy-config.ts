@@ -10,6 +10,16 @@
  * checkout charges. Change prices in Shopify, not in this file.
  */
 
+/**
+ * Canonical origin, in one place.
+ *
+ * app/layout.tsx builds metadataBase from this and app/page.tsx builds the
+ * JSON-LD image URLs from it. Keeping one constant is deliberate: these
+ * drifted apart once already and shipped a scaffold host into every
+ * canonical tag on the site.
+ */
+export const SITE_URL = "https://www.viraltoys.us";
+
 export const PRODUCT = {
   /**
    * Shopify product handle. Must match the store exactly.
@@ -304,33 +314,61 @@ export const TRUST = [
  * whose variant is missing.
  */
 export const MORE_PRODUCTS: readonly string[] = [
-  // The three originals first - they carry the most stock.
-  "gold-bar-squishy",
-  "butter-stick-squishy",
-  "fried-chicken-squishy",
-  // Food-shaped novelties
-  "glitter-dumpling-squishy",
-  "glitter-dumpling-squishy-set",
-  "chocolate-butter-sticks-squishy",
-  "chocolate-snack-squishy",
-  "chocolate-squishy",
-  "caramel-pudding-squishy",
-  "fried-egg-toast-squishy",
-  "bread-cat-squishy",
-  "fruit-maltose-toothpaste-squishy",
-  // Other shapes
-  "jellyfish-squishy",
-  "shiny-malt-squishy",
-  "water-bottle-squishy",
-  "sensory-cube-squishy",
   /*
-    Deliberately NOT listed, though both are live in Shopify:
-      golden-butter-squishy            - the same 13.5cm butter block as
-                                         gold-bar-squishy ($3.45 vs $3.59 cost)
-      fried-chicken-drumstick-squishy  - the same drumstick as
-                                         fried-chicken-squishy
-    Showing both halves of either pair side by side reads as a broken feed.
-    Pick a winner per pair in Shopify, then swap the handle in here.
+    ONLY products whose supplier photography has been looked at, image by
+    image, and found free of third-party marks. Three of sixteen passed.
+
+    A clean TITLE is not a clean product. Renaming a listing does nothing to
+    the photographs, and the photographs are what ship to the Meta catalogue,
+    to Google, and into this carousel. Everything below was audited visually.
+  */
+  "butter-stick-squishy",
+  "caramel-pudding-squishy",
+  "water-bottle-squishy",
+
+  /*
+    ---------------------------------------------------------------------
+    BRANDED - third-party marks visible in the product photography. Do not
+    relist until the Shopify media is replaced with our own shots.
+
+      chocolate-butter-sticks-squishy  Reese's, Twix, Hershey's, Kinder,
+                                       Ferrero, Bounty, Cadbury, Snickers,
+                                       KitKat, Mars
+      chocolate-snack-squishy          Twix, Snickers, KitKat, Reese's,
+                                       Kinder, Bounty, Cadbury, Nestle
+      shiny-malt-squishy               Hello Kitty, Sanrio
+      sensory-cube-squishy             Starbucks siren + wordmark,
+                                       Schylling credit
+      jellyfish-squishy                NEE DOH embossed on the toy, held by
+                                       an identifiable person
+      glitter-dumpling-squishy         Squishy Steam Bunz
+      glitter-dumpling-squishy-set     Squeezy Dumplings
+      fruit-maltose-toothpaste-squishy Chiboki
+
+    ---------------------------------------------------------------------
+    UNRESOLVED - a human needs to look before these go back on the page.
+
+      chocolate-squishy        PULL THIS ONE FIRST. Four identifiable people
+                               including a MINOR, under overlay labels
+                               reading "Autism", "Anxiety", "Pressure" and
+                               "Tension". That attaches a named condition to
+                               a child and implies a therapeutic claim for a
+                               toy. Worse than the trademark problem.
+      fried-chicken-squishy    KFC-style red-and-white striped bucket get-up
+                               with a chef-hatted chicken mascot, plus an
+                               unreadable supplier watermark. No literal KFC
+                               mark, so it is a judgment call.
+      fried-egg-toast-squishy  Supplier watermark 1104028900 tiled across the
+                               image - a licensing problem, not a trademark.
+      gold-bar-squishy         A small erased-logo-shaped artifact next to
+                               the word "BUTTER" that will not resolve.
+      bread-cat-squishy        See the audit notes.
+
+    ---------------------------------------------------------------------
+    DUPLICATES - live in Shopify, deliberately unlisted either way.
+
+      golden-butter-squishy            same item as gold-bar-squishy
+      fried-chicken-drumstick-squishy  same item as fried-chicken-squishy
   */
 ];
 

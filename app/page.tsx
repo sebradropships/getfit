@@ -2,15 +2,16 @@ import type { Metadata } from "next";
 import Image from "next/image";
 
 import DiscountSticker from "@/components/DiscountSticker";
-import MoreSquishies from "@/components/MoreSquishies";
+import ProductCarousel from "@/components/ProductCarousel";
 import SquishyBuy from "@/components/SquishyBuy";
 import { getProduct, getProductsByHandles } from "@/lib/shopify";
-import { cdnImage, type Product } from "@/lib/catalog";
+import { type Product } from "@/lib/catalog";
 import {
   BUNDLES,
   FEATURES,
   MORE_PRODUCTS,
   PRODUCT,
+  SITE_URL,
   REVIEWS,
   REVIEWS_ARE_REAL,
   STEPS,
@@ -71,7 +72,18 @@ function productJsonLd(product: Product | null) {
     "@type": "Product",
     name: PRODUCT.name,
     description: PRODUCT.tagline,
-    ...(product && { image: product.images.map((i) => i.url) }),
+    /*
+      Our own brand photography, NOT product.images. Every Shopify photo on
+      this product carries NeeDoh and Schylling marks, and structured data is
+      read by Google and by Meta's catalogue crawler, so pointing this at the
+      supplier set published those marks in machine-readable form.
+    */
+    image: [
+      PRODUCT.images.hero.src,
+      PRODUCT.images.grid.src,
+      PRODUCT.images.spread.src,
+      PRODUCT.images.unboxing.src,
+    ].map((p) => `${SITE_URL}${p}`),
     ...(variant && {
       offers: {
         "@type": "Offer",
@@ -106,6 +118,16 @@ export default async function LandingPage() {
   }
 
   /*
+    Drop this product's own Shopify photography before it reaches anything
+    else. Every one of those images carries NeeDoh and Schylling marks, and
+    Next serialises whole props into the RSC flight payload - so simply not
+    rendering them still left the URLs in the page source. This page draws
+    its imagery from PRODUCT.images, our own shoot, and needs none of them.
+    Delete them in Shopify too: product feeds never run this code.
+  */
+  if (product) product = { ...product, images: [], featuredImage: null };
+
+  /*
     The extra singles, fetched alongside the box. Each handle is settled
     independently so one dead handle or one Shopify hiccup drops a single card
     instead of taking down the page — the strip hides itself entirely when
@@ -118,9 +140,7 @@ export default async function LandingPage() {
     more = [];
   }
 
-  // The hero now comes from the brand shots, so every Shopify image is free to
-  // feed the variety strip rather than the first being spent on the hero.
-  const variety = product?.images.slice(0, 8) ?? [];
+
 
   /**
    * The flash-sale flag is only truthful when a discount actually exists.
@@ -265,20 +285,13 @@ export default async function LandingPage() {
           </div>
 
           {/* Shopify's own media, when there is any beyond the first. */}
-          {variety.length > 0 && (
-            <div className="strip" aria-label="More styles">
-              {variety.map((img, i) => (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  key={img.url}
-                  src={cdnImage(img.url, 320)}
-                  alt={img.altText ?? `Squishy style ${i + 1}`}
-                  loading="lazy"
-                  decoding="async"
-                />
-              ))}
-            </div>
-          )}
+          {/*
+            Was a strip of this product's own Shopify photographs. Every one
+            of them carried NeeDoh and Schylling marks, so the strip is now a
+            carousel of our own catalogue instead. Do not point this back at
+            product.images without looking at the images first.
+          */}
+          <ProductCarousel products={more} />
         </div>
       </section>
 
@@ -364,17 +377,6 @@ export default async function LandingPage() {
           )}
         </div>
       </section>
-
-      {/* ============================ 3b. MORE VIRAL SQUISHIES */}
-      {more.length > 0 && (
-        <section className="section">
-          <div className="wrap">
-            <p className="kicker">More viral squishies</p>
-            <h2 className="h2">Squish the whole collection</h2>
-            <MoreSquishies products={more} />
-          </div>
-        </section>
-      )}
 
       {/* ================================= 4. FINAL IMPULSE CTA */}
       <section className="final">

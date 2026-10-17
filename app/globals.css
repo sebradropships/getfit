@@ -1582,3 +1582,210 @@ body.locked {
   padding: 12px 14px;
   font-size: 14px;
 }
+
+/* ------------------------------------------- product carousel --------- */
+
+/*
+  Scroll-snap over a flex row. No JavaScript, so it works before hydration
+  and costs nothing on the mobile traffic this page is built for. The inline
+  padding lets the first and last card clear the viewport edge while the
+  negative margin keeps the row flush with .wrap.
+*/
+.carousel {
+  display: flex;
+  gap: 12px;
+  margin: 24px -16px 0;
+  padding: 4px 16px 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.carousel__item {
+  flex: 0 0 46%;
+  scroll-snap-align: start;
+}
+@media (min-width: 700px) {
+  .carousel__item {
+    flex-basis: 30%;
+  }
+}
+@media (min-width: 1000px) {
+  .carousel__item {
+    flex-basis: 220px;
+  }
+}
+
+.pcard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 12px;
+  border-radius: var(--r);
+  background: var(--white);
+  border: 2.5px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.pcard:hover,
+.pcard:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 22px rgba(36, 20, 61, 0.1);
+}
+/* Square box reserved up front so a card cannot shift as its image lands. */
+.pcard__img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: calc(var(--r) - 8px);
+  background: var(--bg-2);
+}
+.pcard__name {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.25;
+}
+.pcard__blurb {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+/* auto keeps prices on one baseline when names wrap to different depths. */
+.pcard__price {
+  margin-top: auto;
+  padding-top: 8px;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 18px;
+}
+.pcard__from {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.pcard__out {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ------------------------------------------- product detail page ------ */
+
+.pdp {
+  background: var(--bg-2);
+}
+.pdp__back {
+  display: inline-block;
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+.pdp__back:hover {
+  text-decoration: underline;
+}
+.pdp__grid {
+  display: grid;
+  gap: 20px;
+}
+@media (min-width: 900px) {
+  .pdp__grid {
+    grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+  }
+}
+.pdp__hero {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--r);
+  background: var(--white);
+  border: 2.5px solid var(--line);
+}
+.pdp__thumbs {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  overflow-x: auto;
+}
+.pdp__thumb {
+  flex: 0 0 auto;
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: var(--white);
+  border: 2px solid var(--line);
+}
+.pdp__title {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: clamp(24px, 5vw, 34px);
+  line-height: 1.1;
+}
+.pdp__desc {
+  margin-top: 12px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.pdp__buy {
+  margin-top: 20px;
+}
+.pdp__price {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 32px;
+}
+.pdp__was {
+  margin-left: 10px;
+  font-size: 17px;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.pdp__variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.pdp__variant {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  min-height: 44px;
+  border-radius: 14px;
+  background: var(--white);
+  border: 2.5px solid var(--line);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pdp__variant--on {
+  border-color: var(--pink);
+  box-shadow: 0 0 0 4px rgba(255, 20, 147, 0.13);
+}
+.pdp__add {
+  width: 100%;
+  margin-top: 18px;
+}
+.pdp__sold {
+  margin-top: 18px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.pdp__trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 18px;
+  list-style: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}

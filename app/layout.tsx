@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 
+import { SITE_URL } from "@/lib/squishy-config";
+
 import AnnouncementStrip from "@/components/AnnouncementStrip";
 import CartProvider from "@/components/CartProvider";
 import CartDrawer from "@/components/CartDrawer";
@@ -26,7 +28,7 @@ const body = Nunito({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.viraltoys.us"),
+  metadataBase: new URL(SITE_URL),
   title: "Blind Box Squishy Mystery Box",
   description:
     "Endless surprise styles. Every box is different. Open, squish, collect.",
