@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import ProductBuy from "@/components/ProductBuy";
+import ProductGallery from "@/components/ProductGallery";
 import { blurb } from "@/components/ProductCarousel";
 import { getProduct } from "@/lib/shopify";
 import { MORE_PRODUCTS, TRUST } from "@/lib/squishy-config";
@@ -63,8 +63,15 @@ export default async function ProductPage({
   const product = await getProduct(handle).catch(() => null);
   if (!product) notFound();
 
-  const hero = product.featuredImage ?? product.images[0] ?? null;
-  const rest = product.images.filter((i) => i.url !== hero?.url).slice(0, 5);
+  /*
+    featuredImage first, then the rest in Shopify order and de-duplicated —
+    the featured shot is usually also images[0], and listing it twice would
+    put two identical thumbnails at the head of the strip.
+  */
+  const featured = product.featuredImage;
+  const gallery = featured
+    ? [featured, ...product.images.filter((i) => i.url !== featured.url)]
+    : product.images;
 
   return (
     <section className="section pdp">
@@ -74,35 +81,7 @@ export default async function ProductPage({
         </Link>
 
         <div className="pdp__grid">
-          <div className="pdp__media">
-            {hero && (
-              <Image
-                className="pdp__hero"
-                src={hero.url}
-                alt={hero.altText || product.title}
-                width={hero.width}
-                height={hero.height}
-                sizes="(min-width: 900px) 460px, 92vw"
-                priority
-              />
-            )}
-
-            {rest.length > 0 && (
-              <div className="pdp__thumbs">
-                {rest.map((img, i) => (
-                  <Image
-                    key={img.url}
-                    className="pdp__thumb"
-                    src={img.url}
-                    alt={img.altText || `${product.title} view ${i + 2}`}
-                    width={img.width}
-                    height={img.height}
-                    sizes="(min-width: 900px) 86px, 20vw"
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductGallery images={gallery} title={product.title} />
 
           <div className="pdp__info">
             <h1 className="pdp__title">{product.title}</h1>

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -46,78 +47,109 @@ export function blurb(text: string, max = 95): string {
   return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).replace(/[,;:.\s]+$/, "") + "…";
 }
 
+function Card({ product, duplicate }: { product: Product; duplicate: boolean }) {
+  const variant = cheapestSellable(product);
+  const sellableCount = product.variants.filter((v) => v.availableForSale).length;
+  const image = product.featuredImage ?? product.images[0] ?? null;
+  const line = blurb(product.description ?? "");
+  /*
+    Real stock or nothing. productLowStock returns null when Shopify will not
+    share quantities, so the badge stays dark rather than inventing a number.
+  */
+  const stock = productLowStock(product);
+
+  return (
+    <div className="carousel__item" role={duplicate ? undefined : "listitem"}>
+      <Link
+        className="pcard"
+        href={`/products/${product.handle}`}
+        /* The second copy exists only to make the loop seamless. It is hidden
+           from assistive tech and taken out of the tab order so the same
+           eighteen products are not announced or tabbed through twice. */
+        tabIndex={duplicate ? -1 : undefined}
+      >
+        {image && (
+          <Image
+            className="pcard__img"
+            src={image.url}
+            alt={duplicate ? "" : image.altText || product.title}
+            width={image.width}
+            height={image.height}
+            sizes="220px"
+          />
+        )}
+
+        <h3 className="pcard__name">{product.title}</h3>
+        {line && <p className="pcard__blurb">{line}</p>}
+
+        <p className="pcard__price">
+          {variant ? (
+            <>
+              {sellableCount > 1 && <span className="pcard__from">from </span>}
+              {money(variant.price)}
+            </>
+          ) : (
+            <span className="pcard__out">Sold out</span>
+          )}
+        </p>
+
+        {stock && (
+          <p
+            className={
+              "pcard__stock" + (stock.urgent ? " pcard__stock--urgent" : "")
+            }
+          >
+            🔥 Only {stock.remaining} left!
+          </p>
+        )}
+      </Link>
+    </div>
+  );
+}
+
 /**
- * Horizontally scrolling product strip.
+ * Continuously looping product strip.
  *
- * Deliberately a server component with no JavaScript: it is CSS scroll-snap
- * over a flex row, so it works before hydration and costs nothing on mobile,
- * where this page's traffic lands. Cards link to the product page; buying
- * happens there.
+ * The track holds the catalogue twice and slides exactly one copy's width
+ * before repeating, which is what makes the wrap invisible — there is no jump
+ * back to the start because the second copy is already where the first one
+ * was. The duplicate costs no extra network: every image URL is identical, so
+ * the browser serves the copies from cache.
+ *
+ * It pauses on hover and on keyboard focus, because the cards are links and a
+ * moving target is not clickable. Under prefers-reduced-motion the animation
+ * is dropped entirely and the strip falls back to the manual scroll-snap row
+ * it used to be.
  */
 export default function ProductCarousel({ products }: { products: Product[] }) {
   if (products.length === 0) return null;
 
+  // Roughly four seconds per card, so the speed stays constant as the
+  // catalogue grows instead of accelerating with every product added.
+  const duration = Math.max(24, products.length * 4);
+
   return (
-    <div className="carousel" role="list" aria-label="Browse the collection">
-      {products.map((product) => {
-        const variant = cheapestSellable(product);
-        const sellableCount = product.variants.filter(
-          (v) => v.availableForSale
-        ).length;
-        const image = product.featuredImage ?? product.images[0] ?? null;
-        const line = blurb(product.description ?? "");
-        /*
-          Real stock or nothing. productLowStock returns null when Shopify
-          will not share quantities, which is the case until the Storefront
-          token is granted unauthenticated_read_product_inventory - so the
-          badge stays dark rather than inventing a number.
-        */
-        const stock = productLowStock(product);
+    <div className="marquee">
+      <div
+        className="marquee__track"
+        style={{ "--marquee-duration": `${duration}s` } as CSSProperties}
+      >
+        <div
+          className="marquee__group"
+          role="list"
+          aria-label="Browse the collection"
+        >
+          {products.map((product) => (
+            <Card key={product.id} product={product} duplicate={false} />
+          ))}
+        </div>
 
-        return (
-          <div className="carousel__item" role="listitem" key={product.id}>
-            <Link className="pcard" href={`/products/${product.handle}`}>
-              {image && (
-                <Image
-                  className="pcard__img"
-                  src={image.url}
-                  alt={image.altText || product.title}
-                  width={image.width}
-                  height={image.height}
-                  sizes="(min-width: 900px) 240px, 46vw"
-                />
-              )}
-
-              <h3 className="pcard__name">{product.title}</h3>
-              {line && <p className="pcard__blurb">{line}</p>}
-
-              <p className="pcard__price">
-                {variant ? (
-                  <>
-                    {sellableCount > 1 && (
-                      <span className="pcard__from">from </span>
-                    )}
-                    {money(variant.price)}
-                  </>
-                ) : (
-                  <span className="pcard__out">Sold out</span>
-                )}
-              </p>
-
-              {stock && (
-                <p
-                  className={
-                    "pcard__stock" +
-                    (stock.urgent ? " pcard__stock--urgent" : "")
-                  }
-                >
-                  🔥 Only {stock.remaining} left!
-                </p>
-              )}
-            </Link>
-          </div>
-        );
-      })}
+        <div className="marquee__group" aria-hidden="true">
+          {products.map((product) => (
+            <Card key={`${product.id}-dup`} product={product} duplicate />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

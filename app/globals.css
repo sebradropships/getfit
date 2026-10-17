@@ -1816,3 +1816,185 @@ body.locked {
 .pdp__stock--urgent {
   color: #d01313;
 }
+
+/* ------------------------------------------- hero loop ---------------- */
+
+/*
+  Slide one stays in normal flow so it keeps defining the box through the
+  existing .hero__media img rules (square on mobile, 4:5 on desktop). The rest
+  are overlaid on it. Opacity does not affect layout, so slide one can fade
+  out without the container collapsing.
+*/
+.hero__media .herocar__img {
+  opacity: 0;
+  transition: opacity 0.55s ease;
+}
+.hero__media .herocar__img.is-on {
+  opacity: 1;
+}
+.hero__media .herocar__img:not(:first-of-type) {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  aspect-ratio: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero__media .herocar__img {
+    transition: none;
+  }
+}
+
+.herocar__dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+/* A 28px hit area around an 8px dot: the tap target is honest without
+   painting a 28px circle on the page. */
+.herocar__dot {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.herocar__dot::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 1px 4px rgba(36, 20, 61, 0.35);
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+.herocar__dot.is-on::after {
+  background: var(--white);
+  transform: scale(1.35);
+}
+
+/* ------------------------------------------- looping marquee ---------- */
+
+.marquee {
+  margin: 24px -16px 0;
+  overflow: hidden;
+  /* Fades cards into the page edges instead of guillotining them. */
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 5%,
+    #000 95%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 5%,
+    #000 95%,
+    transparent
+  );
+}
+.marquee__track {
+  display: flex;
+  width: max-content;
+  animation: marquee var(--marquee-duration, 60s) linear infinite;
+}
+/* The cards are links, and a moving target cannot be clicked. */
+.marquee:hover .marquee__track,
+.marquee:focus-within .marquee__track {
+  animation-play-state: paused;
+}
+.marquee__group {
+  display: flex;
+  gap: 12px;
+  padding: 4px 6px 14px;
+}
+/*
+  The track is exactly two copies wide, so travelling 50% lands the second
+  copy precisely where the first began. That is what makes the wrap invisible.
+*/
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Fixed widths: a percentage basis inside a max-content track would resolve
+   against the track rather than the viewport. */
+.marquee .carousel__item {
+  flex: 0 0 170px;
+}
+@media (min-width: 700px) {
+  .marquee .carousel__item {
+    flex-basis: 200px;
+  }
+}
+@media (min-width: 1000px) {
+  .marquee .carousel__item {
+    flex-basis: 220px;
+  }
+}
+
+/*
+  Reduced motion: drop the animation and hand scrolling back to the visitor,
+  which is the strip exactly as it behaved before it looped. The duplicate
+  group is removed so the catalogue is not announced twice.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .marquee {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 16px;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .marquee__track {
+    width: auto;
+    animation: none;
+  }
+  .marquee__group[aria-hidden="true"] {
+    display: none;
+  }
+  .marquee .carousel__item {
+    scroll-snap-align: start;
+  }
+}
+
+/* Thumbnails are controls now, so they need a button reset and a selected
+   state. The image inside keeps the old .pdp__thumb sizing. */
+.pdp__thumbbtn {
+  flex: 0 0 auto;
+  padding: 0;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: var(--white);
+  cursor: pointer;
+  line-height: 0;
+  overflow: hidden;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.pdp__thumbbtn:hover {
+  transform: translateY(-2px);
+}
+.pdp__thumbbtn.is-on {
+  border-color: var(--pink);
+  box-shadow: 0 0 0 3px rgba(255, 20, 147, 0.14);
+}
+.pdp__thumbbtn .pdp__thumb {
+  display: block;
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border: 0;
+  border-radius: 0;
+}

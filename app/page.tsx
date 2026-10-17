@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 
 import DiscountSticker from "@/components/DiscountSticker";
+import HeroCarousel from "@/components/HeroCarousel";
 import ProductCarousel from "@/components/ProductCarousel";
 import SquishyBuy from "@/components/SquishyBuy";
 import { getProduct, getProductsByHandles } from "@/lib/shopify";
@@ -178,10 +179,11 @@ export default async function LandingPage() {
         <div className="wrap">
           <div className="hero__grid">
             {/*
-              The brand shot, not the Shopify media — it is the only image that
-              shows the box mid-open, which is the entire hook. next/image
-              serves AVIF/WebP and a per-breakpoint size; priority because this
-              is the LCP element on mobile.
+              Our own brand shots, never the Shopify media — every photo on
+              this product carries NeeDoh and Schylling marks. The box
+              mid-open leads because it is the hook; the range and the spread
+              follow on a loop. Only the first is in the server HTML, so the
+              LCP element is still a single priority image.
             */}
             <div className="hero__media">
               {hasRealSale ? (
@@ -194,13 +196,12 @@ export default async function LandingPage() {
                   after="%"
                 />
               ) : null}
-              <Image
-                src={PRODUCT.images.hero.src}
-                alt={PRODUCT.images.hero.alt}
-                width={PRODUCT.images.hero.width}
-                height={PRODUCT.images.hero.height}
-                priority
-                sizes="(min-width: 900px) 46vw, 100vw"
+              <HeroCarousel
+                slides={[
+                  PRODUCT.images.hero,
+                  PRODUCT.images.grid,
+                  PRODUCT.images.spread,
+                ]}
               />
             </div>
 
@@ -265,24 +266,6 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          <div className="showcase reveal">
-            <Image
-              src={PRODUCT.images.grid.src}
-              alt={PRODUCT.images.grid.alt}
-              width={PRODUCT.images.grid.width}
-              height={PRODUCT.images.grid.height}
-              loading="lazy"
-              sizes="(min-width: 768px) 50vw, 100vw"
-            />
-            <Image
-              src={PRODUCT.images.spread.src}
-              alt={PRODUCT.images.spread.alt}
-              width={PRODUCT.images.spread.width}
-              height={PRODUCT.images.spread.height}
-              loading="lazy"
-              sizes="(min-width: 768px) 50vw, 100vw"
-            />
-          </div>
 
           {/* Shopify's own media, when there is any beyond the first. */}
           {/*

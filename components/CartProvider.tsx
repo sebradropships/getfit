@@ -7,7 +7,6 @@ import {
   useEffect,
   useMemo,
   useOptimistic,
-  useRef,
   useState,
   useTransition,
 } from "react";
@@ -17,6 +16,7 @@ import {
   removeLine as removeLineAction,
   setLineQuantity as setLineQuantityAction,
 } from "@/app/actions";
+import { usePathname } from "next/navigation";
 import type { Cart } from "@/lib/catalog";
 
 type CartContextValue = {
@@ -202,13 +202,24 @@ export default function CartProvider({
  * only when JavaScript is running, and runs the reveal observer.
  * Content is fully visible without JS.
  */
+/**
+ * Scroll-reveal for anything carrying .reveal.
+ *
+ * Re-runs on every navigation, and that is the whole point. This hook is
+ * called from Header, which lives in the layout and therefore never
+ * unmounts, while .in is added imperatively with classList rather than
+ * through React state. So when a route change remounts a page, React
+ * recreates its elements with className="reveal" and no .in — the class it
+ * never knew about. Guarded to run once, the observer had already
+ * disconnected and nothing re-observed the new nodes, which left
+ * `.js .reveal { opacity: 0 }` applied to a page with nothing to turn it
+ * back on: every revealed section rendered blank after returning from a
+ * product page.
+ */
 export function useReveal() {
-  const done = useRef(false);
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (done.current) return;
-    done.current = true;
-
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce || typeof IntersectionObserver === "undefined") return;
 
@@ -226,10 +237,19 @@ export function useReveal() {
       { threshold: 0.1, rootMargin: "0px 0px -6% 0px" }
     );
 
-    document
-      .querySelectorAll<HTMLElement>(".reveal")
-      .forEach((el) => io.observe(el));
+    document.querySelectorAll<HTMLElement>(".reveal:not(.in)").forEach((el) => {
+      /*
+        Back-navigation restores scroll, so anything already above the
+        viewport will never intersect on the way down. Those are shown
+        immediately instead of being left invisible until scrolled back up.
+      */
+      if (el.getBoundingClientRect().bottom < 0) {
+        el.classList.add("in");
+        return;
+      }
+      io.observe(el);
+    });
 
     return () => io.disconnect();
-  }, []);
+  }, [pathname]);
 }

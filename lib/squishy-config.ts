@@ -347,7 +347,6 @@ export const MORE_PRODUCTS: readonly string[] = [
       fruit-maltose-toothpaste-squishy Chiboki
   */
   "chocolate-butter-sticks-squishy",
-  "chocolate-snack-squishy",
   "shiny-malt-squishy",
   "sensory-cube-squishy",
   "jellyfish-squishy",
@@ -374,7 +373,6 @@ export const MORE_PRODUCTS: readonly string[] = [
     for the complete catalogue; expect each pair to read as a repeat in the
     carousel until one of each is retired.
   */
-  "golden-butter-squishy",
   "fried-chicken-drumstick-squishy",
 ];
 
