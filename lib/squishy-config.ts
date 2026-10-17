@@ -273,13 +273,22 @@ export const FLASH_SALE = {
 /**
  * Only list what the store genuinely provides.
  *
- * There is no return policy and no verified shipping time yet, so neither is
- * claimed. Add entries only when they are real — an advertised policy is an
+ * There is still no return policy and no verified delivery window, so neither
+ * is claimed. Add entries only when they are real — an advertised policy is an
  * enforceable promise.
+ *
+ * The shipping line is deliberately conditional. Shopify's US zone carries two
+ * active Economy rates: $6.50 flat, and $0.00 gated on TOTAL_PRICE >= $60.00.
+ * So free shipping is real but threshold-based, and a bare "Free shipping"
+ * badge would be false on every single-tier order — the $59.99 four-box misses
+ * the gate by one cent. Stating the threshold keeps it true and makes the badge
+ * do upsell work instead. If the Shopify threshold changes, change this line in
+ * the same commit.
  */
 export const TRUST = [
   { icon: "🔒", label: "Secure checkout" },
   { icon: "📦", label: "Order tracking" },
+  { icon: "🚚", label: "Free shipping over $60" },
 ] as const;
 
 /* ----------------------------------------------------------------- reviews */
