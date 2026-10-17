@@ -1789,3 +1789,30 @@ body.locked {
   font-weight: 600;
   color: var(--ink-soft);
 }
+
+/* ------------------------------------------- low-stock badges --------- */
+
+/*
+  Only ever rendered from a real Shopify quantity. lowStock() returns null
+  when the Storefront token cannot read inventory, and the callers render
+  nothing in that case rather than printing a placeholder figure.
+*/
+.pcard__stock,
+.pdp__stock {
+  font-weight: 800;
+  color: #b3261e;
+}
+.pcard__stock {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+.pdp__stock {
+  margin-top: 8px;
+  font-size: 15px;
+}
+/* Under five units the badge gets the full-strength red. */
+.pcard__stock--urgent,
+.pdp__stock--urgent {
+  color: #d01313;
+}

@@ -131,6 +131,27 @@ export const LOW_STOCK_THRESHOLD = 10;
  * comfortable. The caller must render nothing in that case rather than
  * substituting a placeholder number or a fabricated percentage.
  */
+/**
+ * Product-level low stock, summed over the variants a shopper can buy.
+ *
+ * Returns null when ANY sellable variant reports an unknown quantity,
+ * because a partial sum understates what is on hand - and an understated
+ * scarcity number is exactly the fabricated-urgency problem lowStock()
+ * exists to prevent. Unknown means render nothing, never guess.
+ */
+export function productLowStock(product: {
+  variants: Array<{
+    availableForSale: boolean;
+    quantityAvailable: number | null;
+  }>;
+}): { remaining: number; urgent: boolean } | null {
+  const sellable = product.variants.filter((v) => v.availableForSale);
+  if (sellable.length === 0) return null;
+  if (sellable.some((v) => v.quantityAvailable === null)) return null;
+  const total = sellable.reduce((sum, v) => sum + (v.quantityAvailable ?? 0), 0);
+  return lowStock(total);
+}
+
 export function lowStock(
   quantityAvailable: number | null
 ): { remaining: number; urgent: boolean } | null {

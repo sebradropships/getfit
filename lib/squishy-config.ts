@@ -315,61 +315,67 @@ export const TRUST = [
  */
 export const MORE_PRODUCTS: readonly string[] = [
   /*
-    ONLY products whose supplier photography has been looked at, image by
-    image, and found free of third-party marks. Three of sixteen passed.
+    The full catalogue, listed on the owner's explicit instruction after
+    being shown the image audit below. The supplier photography has NOT been
+    replaced yet; the owner is swapping it in Shopify and has accepted the
+    risk in the meantime, with the Meta catalogue deliberately excluded as
+    the mitigation.
 
-    A clean TITLE is not a clean product. Renaming a listing does nothing to
-    the photographs, and the photographs are what ship to the Meta catalogue,
-    to Google, and into this carousel. Everything below was audited visually.
+    A handle listed here still only renders once its product is ACTIVE and
+    published to Squishy Headless 03. getProductsByHandles drops anything
+    that does not resolve, so a draft product simply has no card.
   */
+
+  // Audited clean, image by image.
   "butter-stick-squishy",
   "caramel-pudding-squishy",
   "water-bottle-squishy",
 
   /*
-    ---------------------------------------------------------------------
-    BRANDED - third-party marks visible in the product photography. Do not
-    relist until the Shopify media is replaced with our own shots.
-
+    Third-party marks visible in the CURRENT supplier photography. Replace
+    the Shopify media before this page carries real traffic:
       chocolate-butter-sticks-squishy  Reese's, Twix, Hershey's, Kinder,
                                        Ferrero, Bounty, Cadbury, Snickers,
                                        KitKat, Mars
       chocolate-snack-squishy          Twix, Snickers, KitKat, Reese's,
                                        Kinder, Bounty, Cadbury, Nestle
       shiny-malt-squishy               Hello Kitty, Sanrio
-      sensory-cube-squishy             Starbucks siren + wordmark,
-                                       Schylling credit
-      jellyfish-squishy                NEE DOH embossed on the toy, held by
-                                       an identifiable person
+      sensory-cube-squishy             Starbucks siren + wordmark, Schylling
+      jellyfish-squishy                NEE DOH embossed, identifiable person
       glitter-dumpling-squishy         Squishy Steam Bunz
       glitter-dumpling-squishy-set     Squeezy Dumplings
       fruit-maltose-toothpaste-squishy Chiboki
-
-    ---------------------------------------------------------------------
-    UNRESOLVED - a human needs to look before these go back on the page.
-
-      chocolate-squishy        PULL THIS ONE FIRST. Four identifiable people
-                               including a MINOR, under overlay labels
-                               reading "Autism", "Anxiety", "Pressure" and
-                               "Tension". That attaches a named condition to
-                               a child and implies a therapeutic claim for a
-                               toy. Worse than the trademark problem.
-      fried-chicken-squishy    KFC-style red-and-white striped bucket get-up
-                               with a chef-hatted chicken mascot, plus an
-                               unreadable supplier watermark. No literal KFC
-                               mark, so it is a judgment call.
-      fried-egg-toast-squishy  Supplier watermark 1104028900 tiled across the
-                               image - a licensing problem, not a trademark.
-      gold-bar-squishy         A small erased-logo-shaped artifact next to
-                               the word "BUTTER" that will not resolve.
-      bread-cat-squishy        See the audit notes.
-
-    ---------------------------------------------------------------------
-    DUPLICATES - live in Shopify, deliberately unlisted either way.
-
-      golden-butter-squishy            same item as gold-bar-squishy
-      fried-chicken-drumstick-squishy  same item as fried-chicken-squishy
   */
+  "chocolate-butter-sticks-squishy",
+  "chocolate-snack-squishy",
+  "shiny-malt-squishy",
+  "sensory-cube-squishy",
+  "jellyfish-squishy",
+  "glitter-dumpling-squishy",
+  "glitter-dumpling-squishy-set",
+  "fruit-maltose-toothpaste-squishy",
+
+  /*
+    Unresolved on review. chocolate-squishy is the one to fix first: four
+    identifiable people including a MINOR, under overlay labels reading
+    "Autism" and "Anxiety". That is a likeness and substantiation problem,
+    not a trademark one, and no image swap on the others addresses it.
+  */
+  "chocolate-squishy",
+  "fried-chicken-squishy",
+  "fried-egg-toast-squishy",
+  "bread-cat-squishy",
+  "gold-bar-squishy",
+
+  /*
+    Near-duplicates of two entries above - golden-butter-squishy is the same
+    13.5cm block as gold-bar-squishy, and fried-chicken-drumstick-squishy the
+    same drumstick as fried-chicken-squishy. Listed because the owner asked
+    for the complete catalogue; expect each pair to read as a repeat in the
+    carousel until one of each is retired.
+  */
+  "golden-butter-squishy",
+  "fried-chicken-drumstick-squishy",
 ];
 
 /* ----------------------------------------------------------------- reviews */

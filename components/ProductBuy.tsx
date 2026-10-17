@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { useCart } from "./CartProvider";
+import { lowStock } from "@/lib/catalog";
 import type { Money, Product } from "@/lib/catalog";
 
 function money(m: Money): string {
@@ -47,12 +48,28 @@ export default function ProductBuy({ product }: { product: Product }) {
       ? selected.compareAtPrice
       : null;
 
+  /*
+    The selected variant's own stock, not a product total - this line sits
+    beside the button that buys exactly this variant. Null when Shopify
+    withholds quantities, and null renders nothing.
+  */
+  const stock = lowStock(selected.quantityAvailable);
+
   return (
     <div className="pdp__buy">
       <p className="pdp__price">
         {money(selected.price)}
         {was && <span className="pdp__was">{money(was)}</span>}
       </p>
+
+      {stock && (
+        <p
+          className={"pdp__stock" + (stock.urgent ? " pdp__stock--urgent" : "")}
+          role="status"
+        >
+          🔥 Only {stock.remaining} left!
+        </p>
+      )}
 
       {sellable.length > 1 && (
         <div

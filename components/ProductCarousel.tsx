@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { productLowStock } from "@/lib/catalog";
 import type { Money, Product, Variant } from "@/lib/catalog";
 
 function money(m: Money): string {
@@ -65,6 +66,13 @@ export default function ProductCarousel({ products }: { products: Product[] }) {
         ).length;
         const image = product.featuredImage ?? product.images[0] ?? null;
         const line = blurb(product.description ?? "");
+        /*
+          Real stock or nothing. productLowStock returns null when Shopify
+          will not share quantities, which is the case until the Storefront
+          token is granted unauthenticated_read_product_inventory - so the
+          badge stays dark rather than inventing a number.
+        */
+        const stock = productLowStock(product);
 
         return (
           <div className="carousel__item" role="listitem" key={product.id}>
@@ -95,6 +103,17 @@ export default function ProductCarousel({ products }: { products: Product[] }) {
                   <span className="pcard__out">Sold out</span>
                 )}
               </p>
+
+              {stock && (
+                <p
+                  className={
+                    "pcard__stock" +
+                    (stock.urgent ? " pcard__stock--urgent" : "")
+                  }
+                >
+                  🔥 Only {stock.remaining} left!
+                </p>
+              )}
             </Link>
           </div>
         );
