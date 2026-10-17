@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Image from "next/image";
 
 import DiscountSticker from "@/components/DiscountSticker";
+import MoreSquishies from "@/components/MoreSquishies";
 import SquishyBuy from "@/components/SquishyBuy";
 import { getProduct } from "@/lib/shopify";
 import { cdnImage, type Product } from "@/lib/catalog";
 import {
   BUNDLES,
   FEATURES,
+  MORE_PRODUCTS,
   PRODUCT,
   REVIEWS,
   REVIEWS_ARE_REAL,
@@ -102,6 +104,18 @@ export default async function LandingPage() {
   } catch {
     product = null;
   }
+
+  /*
+    The extra singles, fetched alongside the box. Each handle is settled
+    independently so one dead handle or one Shopify hiccup drops a single card
+    instead of taking down the page — the strip hides itself entirely when
+    nothing resolves.
+  */
+  const more = (
+    await Promise.all(
+      MORE_PRODUCTS.map((handle) => getProduct(handle).catch(() => null))
+    )
+  ).filter((p): p is Product => p !== null);
 
   // The hero now comes from the brand shots, so every Shopify image is free to
   // feed the variety strip rather than the first being spent on the hero.
@@ -320,6 +334,17 @@ export default async function LandingPage() {
           )}
         </div>
       </section>
+
+      {/* ============================ 3b. MORE VIRAL SQUISHIES */}
+      {more.length > 0 && (
+        <section className="section">
+          <div className="wrap">
+            <p className="kicker">More viral squishies</p>
+            <h2 className="h2">Squish the whole collection</h2>
+            <MoreSquishies products={more} />
+          </div>
+        </section>
+      )}
 
       {/* ================================= 4. FINAL IMPULSE CTA */}
       <section className="final">

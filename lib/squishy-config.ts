@@ -291,6 +291,24 @@ export const TRUST = [
   { icon: "🚚", label: "Free shipping over $60" },
 ] as const;
 
+/* ------------------------------------------------------- more products */
+
+/**
+ * Extra single products featured beneath the mystery box.
+ *
+ * These are the PERMANENT handles set by hand in Shopify, not supplier slugs,
+ * so retitling the products cannot break this list. Nothing here is a price:
+ * title, image and price are all read from Shopify at runtime, exactly like
+ * the mystery box. A handle that does not resolve is dropped from the strip
+ * rather than rendered as an empty card — it fails closed, same as a bundle
+ * whose variant is missing.
+ */
+export const MORE_PRODUCTS: readonly string[] = [
+  "gold-bar-squishy",
+  "butter-stick-squishy",
+  "fried-chicken-squishy",
+];
+
 /* ----------------------------------------------------------------- reviews */
 
 export type Review = {

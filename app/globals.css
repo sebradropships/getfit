@@ -1524,3 +1524,61 @@ body.locked {
   padding: 22px var(--gutter) 8px;
   font-weight: 500;
 }
+
+/* ---------------------------------------- more viral squishies -------- */
+
+.more {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 24px;
+}
+@media (min-width: 900px) {
+  .more {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.more__card {
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  border-radius: var(--r);
+  background: var(--white);
+  border: 2.5px solid var(--line);
+  text-align: center;
+}
+/* Square box reserved up front so the card cannot shift as the image lands. */
+.more__img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: calc(var(--r) - 8px);
+  background: var(--bg-2);
+}
+.more__name {
+  font-size: 14px;
+  line-height: 1.25;
+  margin-top: 10px;
+}
+.more__price {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 20px;
+  margin-top: 6px;
+}
+.more__from {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.more__price--out {
+  font-size: 15px;
+  color: var(--muted);
+}
+/* margin-top:auto keeps the buttons aligned when names wrap to two lines. */
+.more__add {
+  margin-top: auto;
+  margin-bottom: 0;
+  padding: 12px 14px;
+  font-size: 14px;
+}
