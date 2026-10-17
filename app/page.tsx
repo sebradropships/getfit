@@ -4,7 +4,7 @@ import Image from "next/image";
 import DiscountSticker from "@/components/DiscountSticker";
 import MoreSquishies from "@/components/MoreSquishies";
 import SquishyBuy from "@/components/SquishyBuy";
-import { getProduct } from "@/lib/shopify";
+import { getProduct, getProductsByHandles } from "@/lib/shopify";
 import { cdnImage, type Product } from "@/lib/catalog";
 import {
   BUNDLES,
@@ -111,11 +111,12 @@ export default async function LandingPage() {
     instead of taking down the page — the strip hides itself entirely when
     nothing resolves.
   */
-  const more = (
-    await Promise.all(
-      MORE_PRODUCTS.map((handle) => getProduct(handle).catch(() => null))
-    )
-  ).filter((p): p is Product => p !== null);
+  let more: Product[] = [];
+  try {
+    more = await getProductsByHandles([...MORE_PRODUCTS]);
+  } catch {
+    more = [];
+  }
 
   // The hero now comes from the brand shots, so every Shopify image is free to
   // feed the variety strip rather than the first being spent on the hero.
@@ -317,6 +318,35 @@ export default async function LandingPage() {
                 </div>
               ))}
             </div>
+          ) : REVIEWS.length > 0 ? (
+            /*
+              Placeholder branch: REVIEWS holds copy but REVIEWS_ARE_REAL is
+              false. A warning bar sits above the grid, every card is dashed,
+              and the byline is the literal string "Sample placeholder" -
+              r.author is deliberately NOT read here, so nothing in the data
+              can surface as a customer name. No rating and no
+              aggregateRating, because ratingSummary() stays off too.
+            */
+            <>
+              <p className="samplebar">
+                ⚠️ Sample layout only — placeholder copy, not customer
+                reviews. Replace before launch.
+              </p>
+              <div className="reviews">
+                {REVIEWS.map((r) => (
+                  <div className="review review--sample reveal" key={r.id}>
+                    <span
+                      className="stars"
+                      aria-label={`Sample, ${r.rating} out of 5`}
+                    >
+                      {"★".repeat(r.rating)}
+                    </span>
+                    <p>{r.body}</p>
+                    <div className="review__who">Sample placeholder</div>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
             <div className="firstreview reveal">
               <div className="firstreview__emoji" aria-hidden="true">

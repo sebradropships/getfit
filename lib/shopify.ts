@@ -164,6 +164,42 @@ export async function getProduct(handle: string): Promise<Product | null> {
   return data.product ? normalize(data.product) : null;
 }
 
+/**
+ * Several products in ONE request, by handle.
+ *
+ * The landing page features a strip of extra products, and calling
+ * getProduct() per handle would mean one Storefront round trip each on
+ * every revalidation - sixteen of them, serialised behind the page's TTFB.
+ * This aliases them into a single query instead.
+ *
+ * Handles that do not resolve are dropped, so a retired product removes its
+ * card rather than breaking the strip. Order follows the handles passed in.
+ */
+export async function getProductsByHandles(
+  handles: string[]
+): Promise<Product[]> {
+  if (handles.length === 0) return [];
+
+  const params = handles.map((_, i) => `$h${i}: String!`).join(", ");
+  const aliases = handles
+    .map((_, i) => `p${i}: product(handle: $h${i}) { ...ProductFields }`)
+    .join("\n       ");
+  const variables = Object.fromEntries(handles.map((h, i) => [`h${i}`, h]));
+
+  const data = await storefront<Record<string, RawProduct | null>>(
+    `${PRODUCT_FRAGMENT}
+     query Products(${params}) {
+       ${aliases}
+     }`,
+    variables
+  );
+
+  return handles
+    .map((_, i) => data[`p${i}`])
+    .filter((p): p is RawProduct => p != null)
+    .map(normalize);
+}
+
 export async function getProductHandles(): Promise<string[]> {
   const data = await storefront<{ products: { nodes: { handle: string }[] } }>(
     `query Handles { products(first: 100) { nodes { handle } } }`,

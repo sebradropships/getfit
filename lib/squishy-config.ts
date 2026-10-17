@@ -304,9 +304,34 @@ export const TRUST = [
  * whose variant is missing.
  */
 export const MORE_PRODUCTS: readonly string[] = [
+  // The three originals first - they carry the most stock.
   "gold-bar-squishy",
   "butter-stick-squishy",
   "fried-chicken-squishy",
+  // Food-shaped novelties
+  "glitter-dumpling-squishy",
+  "glitter-dumpling-squishy-set",
+  "chocolate-butter-sticks-squishy",
+  "chocolate-snack-squishy",
+  "chocolate-squishy",
+  "caramel-pudding-squishy",
+  "fried-egg-toast-squishy",
+  "bread-cat-squishy",
+  "fruit-maltose-toothpaste-squishy",
+  // Other shapes
+  "jellyfish-squishy",
+  "shiny-malt-squishy",
+  "water-bottle-squishy",
+  "sensory-cube-squishy",
+  /*
+    Deliberately NOT listed, though both are live in Shopify:
+      golden-butter-squishy            - the same 13.5cm butter block as
+                                         gold-bar-squishy ($3.45 vs $3.59 cost)
+      fried-chicken-drumstick-squishy  - the same drumstick as
+                                         fried-chicken-squishy
+    Showing both halves of either pair side by side reads as a broken feed.
+    Pick a winner per pair in Shopify, then swap the handle in here.
+  */
 ];
 
 /* ----------------------------------------------------------------- reviews */
@@ -336,19 +361,59 @@ export type Review = {
 export const REVIEWS_ARE_REAL = false;
 
 /**
- * Empty until real customers have written them.
+ * PLACEHOLDER COPY FOR LAYOUT WORK - NOT CUSTOMER REVIEWS.
  *
- * As of this writing the store has 0 orders and 0 customers, so there is no
- * genuine review that could go here. Do not populate this with invented
- * entries: 16 CFR Part 465 makes writing or disseminating fake consumer
- * reviews a violation carrying civil penalties per review, and Canada's
+ * The store has 0 orders and 0 customers, so no genuine review exists yet.
+ * These entries exist only so the block can be designed and tuned at real
+ * copy lengths. While REVIEWS_ARE_REAL is false they render behind a dashed
+ * warning bar, in dashed cards, and the byline is hard-coded to "Sample
+ * placeholder" - the author field below is never read in that branch, so no
+ * value here can surface as a customer name.
+ *
+ * Do NOT flip REVIEWS_ARE_REAL to true against this array. That switch also
+ * turns on the aggregateRating in structured data, which would publish a
+ * rating no customer produced. Replace every entry with a real review first:
+ * 16 CFR Part 465 carries civil penalties per fake review, and Canada's
  * Competition Act covers false testimonials.
- *
- * When you do have real ones, add them here and set REVIEWS_ARE_REAL to true —
- * the star rating, review count and aggregateRating markup all switch on
- * together and are computed from these entries.
  */
-export const REVIEWS: readonly Review[] = [];
+export const REVIEWS: readonly Review[] = [
+  {
+    id: "sample-1",
+    rating: 5,
+    body: "Opening it was genuinely the best part - I had no idea what was coming out of the box.",
+    author: "Sample placeholder",
+  },
+  {
+    id: "sample-2",
+    rating: 5,
+    body: "Got a mix I was not expecting and ended up liking the strangest one most.",
+    author: "Sample placeholder",
+  },
+  {
+    id: "sample-3",
+    rating: 4,
+    body: "Fun to squeeze and a nice surprise. Would like to know roughly how many come in a box.",
+    author: "Sample placeholder",
+  },
+  {
+    id: "sample-4",
+    rating: 5,
+    body: "Ordered the four-box and split them with friends. Everyone ended up with something different.",
+    author: "Sample placeholder",
+  },
+  {
+    id: "sample-5",
+    rating: 5,
+    body: "The not-knowing is the whole appeal. Already thinking about the next one.",
+    author: "Sample placeholder",
+  },
+  {
+    id: "sample-6",
+    rating: 4,
+    body: "Soft and slow-rising, exactly as described. The surprise beat picking one myself.",
+    author: "Sample placeholder",
+  },
+];
 
 export function ratingSummary() {
   if (!REVIEWS_ARE_REAL || REVIEWS.length === 0) {
