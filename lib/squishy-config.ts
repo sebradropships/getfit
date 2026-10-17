@@ -14,12 +14,11 @@ export const PRODUCT = {
   /**
    * Shopify product handle. Must match the store exactly.
    *
-   * Shopify generated this from the long supplier title. Renaming the product
-   * in Shopify changes the handle and will break this — set a permanent handle
-   * in the product's SEO section if you plan to retitle it.
+   * This is a HAND-SET permanent handle, not the supplier-generated one, so
+   * retitling the product in Shopify no longer breaks this page. Keep it that
+   * way: if you ever change it in Shopify, change it here in the same commit.
    */
-  handle:
-    "1000-pieces-kinds-assorted-squishy-figures-blind-box-surprise-toys-slow-rising-soft-fidget-squeeze-stress-relief-toy-random-1pcs",
+  handle: "squishy-mystery-box",
 
   name: "Blind Box Squishy Mystery Box",
   tagline: "1000+ possible squishy styles. Every box is a surprise.",
@@ -63,8 +62,8 @@ export const PRODUCT = {
   /** Preview-only fallbacks. Shopify wins whenever it has the product. */
   fallback: {
     currency: "USD",
-    originalPrice: 36,
-    salePrice: 18,
+    originalPrice: 21.99,
+    salePrice: 21.99,
   },
 } as const;
 
@@ -131,7 +130,7 @@ export const BUNDLES: readonly Bundle[] = [
     boxes: 1,
     heading: "1 BOX",
     subline: "Try your luck",
-    previewPrice: 36,
+    previewPrice: 21.99,
   },
   {
     id: "double",
@@ -139,24 +138,33 @@ export const BUNDLES: readonly Bundle[] = [
     boxes: 2,
     heading: "2 BOXES",
     subline: "DOUBLE THE SURPRISE",
-    previewPrice: 54,
+    /*
+      The hero. $32.99 against a compare-at of 2 × 21.99 = $43.98 is exactly
+      25% off, so the badge states a figure that is arithmetically true rather
+      than a rounded one. It is deliberately NOT labelled "best value" — the
+      4-box genuinely beats it per box ($15.00 vs $16.50), and claiming
+      otherwise on the cheaper tier would be false.
+    */
+    badge: "SAVE 25% 🔥",
+    highlight: true,
+    previewPrice: 32.99,
   },
   {
     id: "quad",
     variantTitle: "4 Boxes",
     boxes: 4,
     /*
-      At $36 a box, $72 buys two — and you receive four. So this is buy 2 get
-      2 free, not buy 3 get 1 free; the latter would be $108. The accurate
-      claim also happens to be the more generous one. If the 4-box price ever
-      changes, update this wording with it, or use the computed savings figure
-      the bundle row already shows.
+      Deliberately not framed as "buy 3 get 1 free". At $21.99 a box, three
+      would be $65.97 and this sells for $59.99 — LESS than three — so that
+      wording would understate the offer while sounding like a formula. The
+      honest claim is the computed one: $59.99 against 4 × 21.99 = $87.96 is
+      31.8% off, and it is the lowest per-box price on the page, which is what
+      "best value" asserts.
     */
-    heading: "BUY 2 GET 2 FREE",
-    subline: "GET 4 BOXES — PAY FOR 2",
+    heading: "4 BOXES",
+    subline: "LOWEST PRICE PER BOX",
     badge: "BEST VALUE 🔥",
-    highlight: true,
-    previewPrice: 72,
+    previewPrice: 59.99,
   },
 ];
 
@@ -229,7 +237,7 @@ export function bestBundleSaving(
  * the countdown entirely.
  */
 export const COUNTDOWN = {
-  endsAt: "2026-09-06T18:00:00-07:00" as string | null,
+  endsAt: null as string | null,
   label: "FLASH SALE ENDS IN",
 } as const;
 
@@ -248,7 +256,7 @@ export const ANNOUNCEMENT = {
   messages: [
     "🎁 EVERY BOX IS A SURPRISE",
     "🌈 1000+ POSSIBLE STYLES",
-    "🔥 BUY 2 GET 2 FREE — SAVE 50%",
+    "🔥 SAVE UP TO 32% ON BUNDLES",
     "👀 YOU NEVER KNOW WHAT YOU'LL GET",
   ] as readonly string[],
 } as const;

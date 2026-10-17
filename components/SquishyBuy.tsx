@@ -192,7 +192,9 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
     ? unitDiscount?.hasDiscount && singleVariant.compareAtPrice
       ? formatMoney(singleVariant.compareAtPrice)
       : null
-    : money(PRODUCT.fallback.originalPrice, currency);
+    : PRODUCT.fallback.originalPrice > PRODUCT.fallback.salePrice
+      ? money(PRODUCT.fallback.originalPrice, currency)
+      : null;
 
   const bestSaving = bestBundleSaving(product);
   const rating = ratingSummary();
