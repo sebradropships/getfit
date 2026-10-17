@@ -20,14 +20,14 @@ import {
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Blind Box Squishy Mystery Box — 1000+ Possible Styles",
+  title: "Blind Box Squishy Mystery Box — Endless Surprise Styles",
   description:
-    "Every box is a surprise. 1000+ possible squishy styles, shapes and textures. Open, squish, collect — you never know which one you'll get.",
+    "Every box is a surprise. Endless surprise styles, shapes and textures. Open, squish, collect — you never know which one you'll get.",
   alternates: { canonical: "/" },
   openGraph: {
     title: "What will you get?! Blind Box Squishy Mystery Box",
     description:
-      "1000+ possible squishy styles. Every box is a surprise. Open, squish, collect.",
+      "Endless surprise styles. Every box is different. Open, squish, collect.",
     type: "website",
   },
 };
@@ -221,7 +221,7 @@ export default async function LandingPage() {
               </div>
               <div className="mystery__copy">
                 <div className="mystery__cap">Which one will you get?</div>
-                <div className="mystery__count">1000+ possible styles</div>
+                <div className="mystery__count">Endless surprise styles</div>
                 <p className="mystery__sub">
                   Animals, fruit, desserts, glitter-filled galaxy balls. Every
                   box is packed at random — so no two openings are the same.

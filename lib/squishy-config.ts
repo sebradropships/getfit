@@ -21,7 +21,7 @@ export const PRODUCT = {
   handle: "squishy-mystery-box",
 
   name: "Blind Box Squishy Mystery Box",
-  tagline: "1000+ possible squishy styles. Every box is a surprise.",
+  tagline: "Endless surprise styles. Every box is different.",
 
   /**
    * Supplied brand imagery, used in preference to the Shopify media because
@@ -139,31 +139,34 @@ export const BUNDLES: readonly Bundle[] = [
     heading: "2 BOXES",
     subline: "DOUBLE THE SURPRISE",
     /*
-      The hero. $32.99 against a compare-at of 2 × 21.99 = $43.98 is exactly
-      25% off, so the badge states a figure that is arithmetically true rather
-      than a rounded one. It is deliberately NOT labelled "best value" — the
-      4-box genuinely beats it per box ($15.00 vs $16.50), and claiming
-      otherwise on the cheaper tier would be false.
+      The decoy, and priced to be rejected. $39.99 against a compare-at of
+      2 × 21.99 = $43.98 is only 9% off, which is the point: it makes the step
+      up to four boxes for $20 more read as obviously better. No badge — a 9%
+      saving does not earn one, and awarding it would dilute the hero.
+
+      It also clears $25 contribution on its own ($26.77), so a visitor who
+      picks it anyway is still profitable at a $25 CPA.
     */
-    badge: "SAVE 25% 🔥",
-    highlight: true,
-    previewPrice: 32.99,
+    previewPrice: 39.99,
   },
   {
     id: "quad",
     variantTitle: "4 Boxes",
     boxes: 4,
     /*
-      Deliberately not framed as "buy 3 get 1 free". At $21.99 a box, three
-      would be $65.97 and this sells for $59.99 — LESS than three — so that
-      wording would understate the offer while sounding like a formula. The
-      honest claim is the computed one: $59.99 against 4 × 21.99 = $87.96 is
-      31.8% off, and it is the lowest per-box price on the page, which is what
+      The hero, because it is the only tier whose contribution ($34.43) clears
+      a $30 Meta CPA. $59.99 against 4 × 21.99 = $87.96 is 31.8% off at $15.00
+      a box — genuinely the lowest per-box price here, which is exactly what
       "best value" asserts.
+
+      Deliberately not framed as "buy 3 get 1 free": three boxes would be
+      $65.97 and this sells for less than that, so the formula wording would
+      understate the real offer.
     */
     heading: "4 BOXES",
     subline: "LOWEST PRICE PER BOX",
     badge: "BEST VALUE 🔥",
+    highlight: true,
     previewPrice: 59.99,
   },
 ];
@@ -255,7 +258,7 @@ export const ANNOUNCEMENT = {
   // component's empty-list guard has to stay meaningful as this list is edited.
   messages: [
     "🎁 EVERY BOX IS A SURPRISE",
-    "🌈 1000+ POSSIBLE STYLES",
+    "🌈 ENDLESS SURPRISE STYLES",
     "🔥 SAVE UP TO 32% ON BUNDLES",
     "👀 YOU NEVER KNOW WHAT YOU'LL GET",
   ] as readonly string[],
@@ -368,7 +371,7 @@ export const FEATURES = [
   },
   {
     emoji: "🌈",
-    title: "1000+ STYLES",
+    title: "ENDLESS SURPRISE STYLES",
     text: "Animals, fruit, desserts, galaxy glitter and more.",
   },
   {
