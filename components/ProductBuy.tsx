@@ -98,7 +98,7 @@ export default function ProductBuy({ product }: { product: Product }) {
 
       <button
         type="button"
-        className="btn btn--pulse pdp__add"
+        className="btn btn--jelly pdp__add"
         disabled={isAdding}
         onClick={() => add(selected.id, 1)}
       >

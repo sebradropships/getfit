@@ -259,9 +259,6 @@ button {
   box-shadow: 0 8px 0 -2px rgba(36, 20, 61, 0.16);
 }
 
-/* Attention loop on the primary CTA. Slow and small — it should register
-   peripherally, not distract from reading the price. */
-
 /* ------------------------------------------------------------------- hero */
 
 .hero {
@@ -2083,71 +2080,491 @@ body.locked {
 /* ------------------------------------------- jelly buttons ------------ */
 
 /*
-  Replaces the old 4.5s scale blip on .btn--pulse with a jello wobble.
+  The jelly drop on .btn--jelly, a 5s loop that replaces the old .btn--pulse
+  wobble. The button swells as it lifts, free-falls onto the page, splats
+  and jiggles the impact out, idles through five lopsided blob shapes, then
+  springs back to a clean pill and holds still for the last second. A CTA
+  that never stops moving is noise, and this one sits directly under the
+  price.
 
-  The wobble is a damped oscillation: it overshoots, swings back smaller,
-  again smaller, and settles by 34% of the cycle, which is what makes it read
-  as jelly rather than as a throb. The rest of the four seconds is deliberate
-  stillness -- a button that never stops moving is noise, and this one sits
-  directly under the price.
+  The label has to stay readable while the shape warps, so the button is
+  three layers:
 
-  Horizontal scale is kept under 1.015 on purpose. The hero CTA is ~756px
-  wide, so even a 1.07 x-scale would push ~26px past each edge, and this page
-  is not allowed to grow a horizontal scrollbar. The squash reads from the
-  vertical axis and the border-radius anyway, which is where real jelly
-  deforms most.
+  - The button box holds the label and only ever moves up and down, with
+    the individual `translate` property. It is never scaled, skewed or
+    rotated, so the text is never distorted or resampled. Using translate
+    rather than transform also lets .btn's hover lift and press dip land on
+    top of the loop instead of being overwritten by it.
+  - ::before is the body you see: the gradient, the hard purple ledge under
+    it, and every squash, stretch, lean and blob shape, painted beneath the
+    text.
+  - ::after is the pink glow on the "floor". It runs the box's motion in
+    reverse, so it stays put while the body leaves it, and it fades and
+    shrinks while the body is in the air. That is what sells the height of
+    the drop.
 
-  transform and border-radius are both cheap here: no layout, and the paint
-  area is one small element.
+  The label is centred on the body by construction, not by keeping two
+  timelines in step. ::before is inset: 0 inside the box and deforms about
+  its own centre, so its centre is the label's centre on every frame. The
+  box's translate only decides where that pair sits relative to the floor:
+  during the jiggle it sinks by (1 - scaleY) x 50% of its own height, which
+  keeps the squashed body's base on the floor instead of floating up off
+  it. It is a percentage so it stays exact when the label wraps to two
+  lines.
+
+  The motion is sampled from physics rather than eyeballed:
+
+  - The jiggle is a damped spring ringing at 5.5Hz with a damping ratio of
+    0.15. Keyframes sit on its turning points, which fall exactly one
+    half-period (92ms) apart, each swing 0.62x the one before. Every
+    half-swing therefore has the same shape, so one curve,
+    cubic-bezier(0.33, 0, 0.6, 1), fits them all to within 0.3%. That is
+    the default timing function below; only keyframes that name their own
+    curve differ.
+  - The fall is a true free fall: cubic-bezier(0.333, 0, 0.667, 0.333) is
+    exactly y = x squared, 9.5px in 80ms.
+  - The squash is solved from the fall rather than picked. The base stops
+    dead on contact and the label carries its speed, about 240px/s,
+    straight into the squash, which bottoms out at 82% of the height 48ms
+    later. Real gelatin is lighter-damped and would ring for two seconds;
+    0.15 settles in about 0.7s and leaves room for the blob shapes.
+
+  Percentages are milliseconds / 50, so changing the 5s loop retunes the
+  spring and the fall along with it.
 */
-@keyframes jelly-wobble {
-  0%,
-  34%,
-  100% {
-    transform: scale(1, 1) skewX(0deg);
-    border-radius: 999px;
-  }
-  5% {
-    transform: scale(1.015, 0.9) skewX(-2deg);
-    border-radius: 58% 58% 54% 54% / 72% 72% 62% 62%;
-  }
-  11% {
-    transform: scale(0.988, 1.075) skewX(1.6deg);
-    border-radius: 54% 54% 58% 58% / 60% 60% 74% 74%;
-  }
-  17% {
-    transform: scale(1.01, 0.945) skewX(-1.1deg);
-    border-radius: 57% 57% 55% 55% / 68% 68% 63% 63%;
-  }
-  23% {
-    transform: scale(0.994, 1.038) skewX(0.7deg);
-    border-radius: 55% 55% 57% 57% / 63% 63% 68% 68%;
-  }
-  29% {
-    transform: scale(1.004, 0.982) skewX(-0.3deg);
-    border-radius: 80% 80% 78% 78% / 86% 86% 84% 84%;
-  }
-}
 
-.btn--pulse {
-  animation: jelly-wobble 4s cubic-bezier(0.34, 1.3, 0.5, 1) infinite;
-  /* The wobble squashes toward the baseline, like something resting on a
-     surface rather than floating. */
-  transform-origin: center bottom;
+/*
+  The box, and in reverse the floor glow. --jelly-dir is 1 on the box and
+  -1 on ::after, so the glow cancels the box's motion exactly and never
+  leaves the floor.
+*/
+@keyframes jelly-carry {
+  /* Lift: ease off the page, then hang at the top. */
+  0% {
+    translate: 0 0;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
+  }
+  /* 440ms, apex: the base 9.5px up, the body swollen 5% taller. */
+  8.8% {
+    translate: 0 calc((-9.5px - 2.5%) * var(--jelly-dir));
+    animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333);
+  }
+  /* 520ms, contact, still stretched from the fall. The first quarter-swing
+     into the squash has its own fitted curve. */
+  10.4% {
+    translate: 0 calc(-2.5% * var(--jelly-dir));
+    animation-timing-function: cubic-bezier(0.35, 0.59, 0.64, 1);
+  }
+  /* Spring turning points; each sink is (1 - scaleY) x 50%. */
+  11.36% {
+    translate: 0 calc(9.15% * var(--jelly-dir));
+  }
+  13.19% {
+    translate: 0 calc(-5.7% * var(--jelly-dir));
+  }
+  15.03% {
+    translate: 0 calc(3.55% * var(--jelly-dir));
+  }
+  16.87% {
+    translate: 0 calc(-2.2% * var(--jelly-dir));
+  }
+  18.71% {
+    translate: 0 calc(1.35% * var(--jelly-dir));
+  }
+  20.55% {
+    translate: 0 calc(-0.85% * var(--jelly-dir));
+  }
+  22.39% {
+    translate: 0 calc(0.525% * var(--jelly-dir));
+  }
+  /* 1211ms: settled. The label holds perfectly still from here through
+     every blob shape, so the text stays crisp while the outline moves. */
+  24.23% {
+    translate: 0 0;
+  }
+  /* 3550ms: the snap back lands with a small plop. */
+  71% {
+    translate: 0 0;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  73.2% {
+    translate: 0 calc(2.25% * var(--jelly-dir));
+  }
+  75.04% {
+    translate: 0 calc(-1.4% * var(--jelly-dir));
+  }
+  76.88% {
+    translate: 0 calc(0.85% * var(--jelly-dir));
+  }
+  78.72%,
+  100% {
+    translate: 0 0;
+  }
 }
 
 /*
-  A button that deforms under the cursor is harder to hit, and the press
-  already has its own :active feedback.
+  The body's squash, stretch and lean. The jiggle adds an alternating skew,
+  decaying at the same 0.62 a swing, so the jelly sways as it settles
+  instead of only pumping up and down. In the blob phase each shape gets a
+  slight lean of its own, and the release from the last one is the same
+  spring let go from rest.
 */
-.btn--pulse:hover,
-.btn--pulse:active,
-.btn--pulse:focus-visible {
+@keyframes jelly-flex {
+  0% {
+    transform: rotate(0deg) skewX(0deg) scale(1, 1);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
+  }
+  /* Swell: wider and taller, as if picked up off the page. */
+  8.8% {
+    transform: rotate(0deg) skewX(0deg) scale(calc(1 + var(--jx) * 0.7), 1.05);
+    animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333);
+  }
+  /* Contact: drawn thin by the fall. */
+  10.4% {
+    transform: rotate(0deg) skewX(0deg) scale(calc(1 - var(--jx) * 0.27), 1.05);
+    animation-timing-function: cubic-bezier(0.35, 0.59, 0.64, 1);
+  }
+  /* 568ms, the splat: 82% tall at the full width budget. */
+  11.36% {
+    transform: rotate(0deg) skewX(0deg) scale(calc(1 + var(--jx)), 0.817);
+  }
+  13.19% {
+    transform: rotate(0deg) skewX(-3deg) scale(calc(1 - var(--jx) * 0.621), 1.114);
+  }
+  15.03% {
+    transform: rotate(0deg) skewX(1.86deg) scale(calc(1 + var(--jx) * 0.385), 0.929);
+  }
+  16.87% {
+    transform: rotate(0deg) skewX(-1.16deg) scale(calc(1 - var(--jx) * 0.24), 1.044);
+  }
+  18.71% {
+    transform: rotate(0deg) skewX(0.72deg) scale(calc(1 + var(--jx) * 0.148), 0.973);
+  }
+  20.55% {
+    transform: rotate(0deg) skewX(-0.45deg) scale(calc(1 - var(--jx) * 0.092), 1.017);
+  }
+  22.39% {
+    transform: rotate(0deg) skewX(0.28deg) scale(calc(1 + var(--jx) * 0.057), 0.9895);
+  }
+  24.23% {
+    transform: rotate(0deg) skewX(0deg) scale(1, 1);
+    animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+  }
+  33% {
+    transform: rotate(-0.4deg) skewX(1.5deg) scale(calc(1 + var(--jx) * 0.25), 0.985);
+    animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+  }
+  42.5% {
+    transform: rotate(0.3deg) skewX(-1.5deg) scale(calc(1 - var(--jx) * 0.15), 1.015);
+    animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+  }
+  52% {
+    transform: rotate(-0.2deg) skewX(0.8deg) scale(calc(1 - var(--jx) * 0.1), 1.025);
+    animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+  }
+  61.5% {
+    transform: rotate(0.35deg) skewX(2.4deg) scale(calc(1 + var(--jx) * 0.1), 0.995);
+    animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+  }
+  /* 3550ms: released from the last shape. */
+  71% {
+    transform: rotate(-0.3deg) skewX(-1.2deg) scale(calc(1 + var(--jx) * 0.35), 0.975);
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  73.2% {
+    transform: rotate(0.186deg) skewX(0.745deg) scale(calc(1 + var(--jx) * 0.25), 0.955);
+  }
+  75.04% {
+    transform: rotate(-0.116deg) skewX(-0.463deg) scale(calc(1 - var(--jx) * 0.155), 1.028);
+  }
+  76.88% {
+    transform: rotate(0.072deg) skewX(0.288deg) scale(calc(1 + var(--jx) * 0.095), 0.983);
+  }
+  78.72%,
+  100% {
+    transform: rotate(0deg) skewX(0deg) scale(1, 1);
+  }
+}
+
+/*
+  The shapes, and why every radius is a big px number.
+
+  Percentages are the obvious way to write a blob, but a horizontal
+  percentage resolves against the width: on the 756px hero button "60%" is
+  a 450px curve and the pill turns into a lens, and on a phone the same
+  value is a different shape again. Morphing out of 999px is no better.
+  Anything past half the height is clamped, so most of that tween is spent
+  in values that all look identical, and the change lands in a lump at the
+  end.
+
+  So the radii are written in thousandths of the button's height. On every
+  keyframe the two vertical radii on each end (TL + BL and TR + BR, after
+  the slash) add up to exactly 1000px. That is always taller than the
+  button, so the browser's corner-overlap rule scales every radius by
+  height / 1000 on every frame: 500px all round is an exact pill at any
+  height (29px on a 58px button, 40px if the label wraps to 81px), 1500px
+  means 1.5x the height, and because the sums never change, every tween is
+  linear in what you see. The shapes come out the same on the 756px hero as
+  on a 288px phone button; only the straight middle is longer.
+
+  Editing rule: keep both ends summing to 1000, or the whole outline swells
+  and shrinks between frames. The longest pair along one edge is 2600 (the
+  puddle's belly), so a shape only starts to distort on a button narrower
+  than 2.6x its own height, which no current button is.
+
+  How far the shapes reach is set by the tightest button, the two-line hero
+  CTA on a 360px phone (288 x 81px). There every outline stays at least 6px
+  clear of the label on every frame, and 3.5px on a 320px phone. Pulling a
+  long corner further in than these will start to clip the first line.
+*/
+@keyframes jelly-shape {
+  0%,
+  10.4% {
+    border-radius: 500px;
+    animation-timing-function: cubic-bezier(0.35, 0.59, 0.64, 1);
+  }
+  /* The splat: a domed top over a flat, wide base. It rides the spring
+     with the squash, inverting on each rebound, so the impact reads as
+     jelly hitting a floor rather than a capsule being scaled. */
+  11.36% {
+    border-radius: 860px 820px 360px 340px / 630px 610px 390px 370px;
+  }
+  13.19% {
+    border-radius: 276px 301px 587px 599px / 419px 432px 568px 581px;
+  }
+  15.03% {
+    border-radius: 639px 623px 446px 438px / 550px 542px 458px 450px;
+  }
+  16.87% {
+    border-radius: 414px 423px 534px 538px / 469px 474px 526px 531px;
+  }
+  18.71% {
+    border-radius: 553px 547px 479px 476px / 519px 516px 484px 481px;
+    animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+  }
+  /* The five resting shapes, 475ms apart and eased in and out so each one
+     registers before the next. */
+  /* 1. Heel: the weight pools into a long low heel on the left, and the
+        right end perks up. */
+  33% {
+    border-radius: 640px 520px 760px 1700px / 640px 380px 620px 360px;
+    animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+  }
+  /* 2. Egg: a blunt left end and a long taper to the right. */
+  42.5% {
+    border-radius: 460px 1550px 1450px 480px / 520px 420px 580px 480px;
+    animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+  }
+  /* 3. Gumdrop: puffed up into a lopsided dome, highest on the left. */
+  52% {
+    border-radius: 1000px 800px 380px 440px / 680px 620px 380px 320px;
+    animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+  }
+  /* 4. Twist: top-left and bottom-right drawn out, the other two tight. */
+  61.5% {
+    border-radius: 1550px 400px 1500px 420px / 460px 420px 580px 540px;
+    animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+  }
+  /* 5. Puddle: tight, flat shoulders over a belly that sags low and wide. */
+  71% {
+    border-radius: 420px 470px 1350px 1250px / 300px 330px 670px 700px;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  /* 3750ms: snapped back to the pill, and held until the loop restarts. */
+  75%,
+  100% {
+    border-radius: 500px;
+  }
+}
+
+/* The floor glow shrinks and fades as the body rises, and sharpens back up
+   as it falls in. */
+@keyframes jelly-glow {
+  0% {
+    scale: 1;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
+  }
+  8.8% {
+    scale: 0.88 0.8;
+    opacity: 0.45;
+    animation-timing-function: cubic-bezier(0.333, 0, 0.667, 0.333);
+  }
+  10.4%,
+  100% {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+.btn--jelly {
+  /* Shared by every layer so they start, loop and pause together. The wait
+     keeps the first drop out of the page's hydration and gives a beat of
+     calm when the button comes back from "Adding…". */
+  --jelly-loop: 5s;
+  --jelly-wait: 0.8s;
+  --jelly-dir: 1;
+  position: relative;
+  /* The two layers sit at negative z-index. Isolation keeps them inside
+     the button, above whatever it sits on, instead of sliding behind the
+     section background. */
+  isolation: isolate;
+  /*
+    Lets ::before size its squash to the button's own width. Inline-size
+    containment means the button no longer sizes itself from its label, so
+    this needs a definite width. Both current buttons are width: 100% in a
+    block, which is fine; dropped into a shrink-to-fit parent (inline-block,
+    an auto grid track, a flex item with no width) it would collapse to its
+    44px of padding.
+  */
+  container: jelly / inline-size;
+  /* The layers paint these now. */
+  background: none;
+  box-shadow: none;
+  animation: jelly-carry var(--jelly-loop) cubic-bezier(0.33, 0, 0.6, 1)
+    var(--jelly-wait) infinite;
+}
+/* .btn:active would otherwise paint its pressed shadow on the empty box. */
+.btn--jelly:active:not(:disabled) {
+  box-shadow: none;
+}
+
+.btn--jelly::before,
+.btn--jelly::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.btn--jelly::before {
+  --jx: 0.026;
+  z-index: -1;
+  background: var(--grad-hot);
+  box-shadow: 0 8px 0 -2px rgba(123, 44, 255, 0.28);
+  transition: box-shadow 0.16s var(--ease);
+  animation:
+    jelly-flex var(--jelly-loop) cubic-bezier(0.33, 0, 0.6, 1)
+      var(--jelly-wait) infinite,
+    jelly-shape var(--jelly-loop) cubic-bezier(0.33, 0, 0.6, 1)
+      var(--jelly-wait) infinite;
+}
+
+/*
+  The horizontal budget. A scaleX pushes (scale - 1) x width / 2 past each
+  edge, so no single proportional number suits both a 320px phone button
+  and an 843px tablet one. Sized for the phone, the wide button would bulge
+  ~23px past its edges; sized for the wide one, the phone's squash barely
+  shows. And the product-page button has only its 18px gutter before it
+  would push past the viewport, which iOS answers by letting the whole page
+  pan sideways instead of honouring overflow-x on body.
+
+  So --jx is the peak extra width as a fraction, picked per width band so
+  the widest frame stays at 11px a side or less at every width, inside the
+  18px gutter. The query measures the content box, which is the button minus
+  its 44px of padding, so 356px and 556px mean 400px and 600px buttons. The
+  default is the wide-safe value, so an engine that cannot resolve the query
+  from a pseudo-element just gets a subtler squash.
+
+  Every X scale in jelly-flex is written as 1 + --jx x k, so k = 1 is the
+  impact frame's full budget and every other frame is a fraction of it.
+*/
+@container jelly (max-width: 556px) {
+  .btn--jelly::before {
+    --jx: 0.036;
+  }
+}
+@container jelly (max-width: 356px) {
+  .btn--jelly::before {
+    --jx: 0.055;
+  }
+}
+
+/*
+  The pink glow lives on its own layer for two reasons. It can stay on the
+  floor while the body lifts, and it never has to be repainted: the blob
+  shapes animate border-radius, which runs on the main thread and repaints
+  its layer every frame, and a 30px blur is the most expensive thing on
+  this button to paint. Here it is drawn once and only moved and faded,
+  which the compositor does on its own.
+
+  It is a blurred bar rather than .btn's box-shadow. A box-shadow is never
+  painted inside its own box, so once the body moved off this one it would
+  leave a pale, pill-shaped hole in the glow. The bar is the same rectangle
+  that shadow drew (10px in from each end, from 24px below the top down to
+  the base) with the same 15px-sigma blur, and it has no hole.
+
+  Its box also stays on the resting footprint while the body is up, so a
+  tap aimed at where the button was still lands on it.
+*/
+.btn--jelly::after {
+  --jelly-dir: -1;
+  z-index: -2;
+  background: linear-gradient(rgba(255, 20, 147, 0.6), rgba(255, 20, 147, 0.6))
+    50% 100% / calc(100% - 20px) calc(100% - 24px) no-repeat;
+  filter: blur(15px);
+  transform-origin: 50% 100%;
+  transition:
+    filter 0.16s var(--ease),
+    background-position 0.16s var(--ease);
+  animation:
+    jelly-carry var(--jelly-loop) cubic-bezier(0.33, 0, 0.6, 1)
+      var(--jelly-wait) infinite,
+    jelly-glow var(--jelly-loop) linear var(--jelly-wait) infinite;
+}
+
+/* .btn's press shadow, split across the two layers. Neither is animated,
+   so a plain rule is enough to win. */
+.btn--jelly:active:not(:disabled)::before {
+  box-shadow: 0 4px 0 -2px rgba(123, 44, 255, 0.28);
+}
+.btn--jelly:active:not(:disabled)::after {
+  background-position: 50% calc(100% - 2px);
+  filter: blur(9px);
+}
+
+/*
+  Pause rather than reset. A button that moves under the pointer is harder
+  to hit, and a press already has its own :active feedback. Hover is
+  limited to real pointers for the same reason as the marquee: on touch,
+  :hover latches onto the last-tapped element and would freeze the loop for
+  good. Each layer runs its own animations, so all three pause and resume
+  in the same style change, which keeps them in step.
+*/
+@media (hover: hover) and (pointer: fine) {
+  .btn--jelly:hover,
+  .btn--jelly:hover::before,
+  .btn--jelly:hover::after {
+    animation-play-state: paused;
+  }
+}
+.btn--jelly:active,
+.btn--jelly:active::before,
+.btn--jelly:active::after,
+.btn--jelly:focus-visible,
+.btn--jelly:focus-visible::before,
+.btn--jelly:focus-visible::after {
   animation-play-state: paused;
 }
 
+/* "Adding…" and "Sold out" are not invitations to click. The button sits
+   still as a plain pill and starts again from the top once it is enabled. */
+.btn--jelly:disabled,
+.btn--jelly:disabled::before,
+.btn--jelly:disabled::after {
+  animation: none;
+}
+.btn--jelly:disabled::before {
+  box-shadow: none;
+}
+.btn--jelly:disabled::after {
+  background: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .btn--pulse {
+  .btn--jelly,
+  .btn--jelly::before,
+  .btn--jelly::after {
     animation: none;
   }
 }

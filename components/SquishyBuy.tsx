@@ -356,7 +356,7 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
         <div ref={ctaRef} style={{ marginTop: 16 }}>
           <button
             type="button"
-            className="btn btn--pulse"
+            className="btn btn--jelly"
             onClick={buy}
             disabled={!canBuy || adding}
           >
