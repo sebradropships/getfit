@@ -128,13 +128,14 @@ export default function ProductCarousel({ products }: { products: Product[] }) {
     Seconds per card, which keeps the speed constant as the catalogue grows
     rather than accelerating with every product added.
 
-    2.5s, not 5s. At 5s the strip crawled at 54px/s, so a card took fifty
-    seconds to come back around -- measured on the live page, along with the
-    seam, which is gapless to within 0.01px. Nothing was broken; it was just
-    slow enough that the wait read as a gap. This roughly doubles it to
-    ~109px/s, which still leaves each card about ten seconds on screen.
+    Both ends of this have been wrong, so the numbers are worth keeping. At
+    5s the strip crawled at 54px/s and a card took fifty seconds to come back
+    around, which read as a gap in the loop even though the seam measures
+    gapless to within 0.01px on the live page. At 2.5s it ran at 109px/s,
+    which cured the stall but pushed the cards past a comfortable reading and
+    tapping speed. 3.5s sits between the two: ~78px/s, a full cycle in 45s.
   */
-  const duration = Math.max(20, products.length * 2.5);
+  const duration = Math.max(20, products.length * 3.5);
 
   return (
     <div className="marquee">
