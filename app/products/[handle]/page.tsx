@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 import ProductBuy from "@/components/ProductBuy";
 import ProductGallery from "@/components/ProductGallery";
-import { blurb } from "@/components/ProductCarousel";
+import { blurb } from "@/lib/text";
 import { getProduct } from "@/lib/shopify";
 import { MORE_PRODUCTS, TRUST } from "@/lib/squishy-config";
 

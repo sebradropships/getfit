@@ -1,8 +1,9 @@
-import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import CarouselAutoplay from "@/components/CarouselAutoplay";
 import { productLowStock } from "@/lib/catalog";
+import { blurb } from "@/lib/text";
 import type { Money, Product, Variant } from "@/lib/catalog";
 
 function money(m: Money): string {
@@ -30,23 +31,6 @@ function cheapestSellable(product: Product): Variant | null {
   );
 }
 
-/**
- * A one-line blurb from Shopify's plain-text description.
- *
- * `description` is already HTML-stripped by Shopify — `descriptionHtml` is the
- * markup version — so this only has to shorten it. It cuts at a word boundary
- * rather than mid-word, and returns "" for the supplier dumps that are nothing
- * but spec tables, so the card drops the line instead of printing debris.
- */
-export function blurb(text: string, max = 95): string {
-  const flat = text.replace(/\s+/g, " ").trim();
-  if (flat.length === 0) return "";
-  if (flat.length <= max) return flat;
-  const cut = flat.slice(0, max);
-  const lastSpace = cut.lastIndexOf(" ");
-  return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).replace(/[,;:.\s]+$/, "") + "…";
-}
-
 function Card({ product, duplicate }: { product: Product; duplicate: boolean }) {
   const variant = cheapestSellable(product);
   const sellableCount = product.variants.filter((v) => v.availableForSale).length;
@@ -63,9 +47,12 @@ function Card({ product, duplicate }: { product: Product; duplicate: boolean }) 
       <Link
         className="pcard"
         href={`/products/${product.handle}`}
-        /* The second copy exists only to make the loop seamless. It is hidden
-           from assistive tech and taken out of the tab order so the same
-           eighteen products are not announced or tabbed through twice. */
+        /* The outer copies exist only to make the loop seamless. They are
+           hidden from assistive tech and taken out of the tab order so the
+           same thirteen products are not announced or tabbed through three
+           times. They stay clickable, though: a copy is pixel-identical to the
+           card it duplicates and points at the same product, so a tap on one
+           has to go somewhere rather than nowhere. */
         tabIndex={duplicate ? -1 : undefined}
       >
         {image && (
@@ -108,20 +95,36 @@ function Card({ product, duplicate }: { product: Product; duplicate: boolean }) 
 }
 
 /**
- * Continuously looping product strip.
+ * Looping product strip the visitor can also swipe.
  *
- * The track holds the catalogue twice and slides exactly one copy's width
- * before repeating, which is what makes the wrap invisible — there is no jump
- * back to the start because the second copy is already where the first one
- * was. The duplicate costs no extra network: every image URL is identical, so
- * the browser serves the copies from cache.
+ * Three copies of the catalogue sit side by side and the strip rests in the
+ * middle one, which is what lets a swipe run a long way in either direction
+ * before it can reach a real end. Sliding the scroll position by exactly one
+ * copy puts it back in the middle and changes nothing on screen, because the
+ * content is periodic — that is the wrap, and it is invisible rather than
+ * merely well hidden.
  *
- * It pauses on hover and on keyboard focus, because the cards are links and a
- * moving target is not clickable. Under prefers-reduced-motion the animation
- * is dropped entirely and the strip falls back to the manual scroll-snap row
- * it used to be.
+ * The third copy looks expensive and is not. Every image URL is identical, so
+ * it costs no network at all, and the 46KB of markup it adds compresses to 35
+ * bytes because it sits inside the compression window of the copy in front of
+ * it. What it buys is runway: 3.1 screens of swipe in either direction before
+ * a gesture could reach a boundary, against 1.5 with two copies.
+ *
+ * This stays a server component. Only the thin wrapper that owns the animation
+ * frame loop is client code; the cards are rendered here and handed down as
+ * children, so making the strip swipeable did not move thirty-nine product
+ * cards into the client bundle.
  */
-export default function ProductCarousel({ products }: { products: Product[] }) {
+export default function ProductCarousel({
+  products,
+  labelledBy,
+}: {
+  products: Product[];
+  /* The id of the visible heading above the strip. A list that already has a
+     heading should be named by it rather than by a second, invented label that
+     only a screen reader ever hears. */
+  labelledBy?: string;
+}) {
   if (products.length === 0) return null;
 
   /*
@@ -134,19 +137,30 @@ export default function ProductCarousel({ products }: { products: Product[] }) {
     gapless to within 0.01px on the live page. At 2.5s it ran at 109px/s,
     which cured the stall but pushed the cards past a comfortable reading and
     tapping speed. 3.5s sits between the two: ~78px/s, a full cycle in 45s.
-  */
-  const duration = Math.max(20, products.length * 3.5);
 
+    The loop takes its speed from this and the measured copy width, so the
+    number still means seconds per card at every breakpoint — the same
+    arithmetic the CSS animation used to do.
+  */
+  const cycleSeconds = Math.max(20, products.length * 3.5);
+
+  /* The real list is the middle copy, so the strip rests on the cards that
+     carry the markup rather than on a decorative one. A tab into the strip
+     then lands on the cards the visitor is already looking at. */
   return (
-    <div className="marquee">
-      <div
-        className="marquee__track"
-        style={{ "--marquee-duration": `${duration}s` } as CSSProperties}
-      >
+    <CarouselAutoplay cycleSeconds={cycleSeconds}>
+      <div className="marquee__track">
+        <div className="marquee__group" aria-hidden="true">
+          {products.map((product) => (
+            <Card key={`${product.id}-before`} product={product} duplicate />
+          ))}
+        </div>
+
         <div
           className="marquee__group"
           role="list"
-          aria-label="Browse the collection"
+          aria-labelledby={labelledBy}
+          aria-label={labelledBy ? undefined : "Browse the collection"}
         >
           {products.map((product) => (
             <Card key={product.id} product={product} duplicate={false} />
@@ -155,10 +169,10 @@ export default function ProductCarousel({ products }: { products: Product[] }) {
 
         <div className="marquee__group" aria-hidden="true">
           {products.map((product) => (
-            <Card key={`${product.id}-dup`} product={product} duplicate />
+            <Card key={`${product.id}-after`} product={product} duplicate />
           ))}
         </div>
       </div>
-    </div>
+    </CarouselAutoplay>
   );
 }

@@ -1863,12 +1863,55 @@ body.locked {
   transform: scale(1.35);
 }
 
-/* ------------------------------------------- looping marquee ---------- */
+/* ------------------------------------------- swipeable marquee -------- */
 
+/*
+  The strip is a real scroll container, not a transform.
+
+  It used to slide with `animation: marquee` on the track, and no amount of CSS
+  could make that swipeable — a transform and a scroll offset are different
+  mechanisms, and a finger moves the second one. So the motion moved into JS
+  (components/CarouselAutoplay.tsx), which drives `scrollLeft` from an animation
+  frame loop. The visitor's swipe and the autoplay then write to the same
+  number, which is why control passes between them without a seam.
+
+  There is deliberately no `scroll-snap-type` here. Mandatory snap and
+  programmatic autoplay cannot coexist: with snap on, thirty frames of
+  per-frame `scrollLeft` writes advanced the strip 0.0px, because the browser
+  pins every write straight back to the nearest snap point. `proximity` does
+  the same. Switching snap on when a gesture starts is no better — the property
+  change makes the browser re-snap on the spot, a measured 43px jump out from
+  under the finger. So the snap is done in JS when a gesture ends: a 240ms
+  glide onto the nearest card, landing exactly where the `scroll-snap-align`
+  and `scroll-padding-inline-start` below would have put it. Both stay
+  declared, because under reduced motion there is no autoplay to fight and the
+  browser can do the snapping itself.
+*/
 .marquee {
   margin: 24px -16px 0;
-  overflow: hidden;
-  /* Fades cards into the page edges instead of guillotining them. */
+  overflow-x: auto;
+  /* `overflow-x: auto` alone would compute the other axis to auto as well, and
+     the strip would gain a stray vertical scrollbar over the cards' shadows. */
+  overflow-y: hidden;
+  /* Our own writes have to land immediately. The smooth scrolling `html` asks
+     for would turn every frame of autoplay into its own easing curve. */
+  scroll-behavior: auto;
+  /* A horizontal overscroll must not reach the page: on a trackpad it becomes
+     a browser back-navigation, which is a brutal thing to trigger by flicking
+     a product strip. */
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  /* 6%, just past the edge fade below, so neither a snapped card nor one the
+     browser has just scrolled a Tab onto comes to rest inside the fade. */
+  scroll-padding-inline-start: 6%;
+  /* No scrollbar. It is not a keyboard affordance — Tab moves to the next card
+     and the browser scrolls it into view, and arrow keys scroll the strip once
+     focus is inside it — so hiding it costs nothing, and a permanent 15px
+     gutter under a row of cards costs a lot. */
+  scrollbar-width: none;
+  /* Fades cards into the page edges instead of guillotining them. A mask paints
+     the element's scrolled-out content too, so it keeps working now that the
+     element scrolls rather than clips. */
   -webkit-mask-image: linear-gradient(
     90deg,
     transparent,
@@ -1884,38 +1927,35 @@ body.locked {
     transparent
   );
 }
+.marquee::-webkit-scrollbar {
+  display: none;
+}
 .marquee__track {
   display: flex;
   width: max-content;
-  animation: marquee var(--marquee-duration, 60s) linear infinite;
 }
-/* The cards are links, and a moving target cannot be clicked. */
-.marquee:hover .marquee__track,
-.marquee:focus-within .marquee__track {
-  animation-play-state: paused;
-}
+/* The group's own 6px of side padding is half the 12px gap, so the join between
+   two copies measures the same as the gaps inside one: 11.98px against 11.99px
+   on the live page. That is what makes the wrap invisible. */
 .marquee__group {
   display: flex;
   gap: 12px;
   padding: 4px 6px 14px;
 }
-/*
-  The track is exactly two copies wide, so travelling 50% lands the second
-  copy precisely where the first began. That is what makes the wrap invisible.
-*/
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
+
+/* A mouse has nothing to grab now that the scrollbar is gone, so JS gives it a
+   drag. While one is in progress the cursor says so, and selecting card text
+   halfway through a swipe is not what anybody meant. */
+.marquee--dragging {
+  cursor: grabbing;
+  user-select: none;
 }
 
 /* Fixed widths: a percentage basis inside a max-content track would resolve
    against the track rather than the viewport. */
 .marquee .carousel__item {
   flex: 0 0 170px;
+  scroll-snap-align: start;
 }
 @media (min-width: 700px) {
   .marquee .carousel__item {
@@ -1929,28 +1969,23 @@ body.locked {
 }
 
 /*
-  Reduced motion: drop the animation and hand scrolling back to the visitor,
-  which is the strip exactly as it behaved before it looped. The duplicate
-  group is removed so the catalogue is not announced twice.
+  Reduced motion: no autoplay at all, and swiping is all that is left — which
+  is the strip exactly as it behaved before it looped. The loop never starts, so
+  nothing competes with the browser's own snapping and it can be handed the job
+  outright. The duplicate copies go with the autoplay that needed them, so the
+  catalogue is neither announced nor scrolled through three times, and with a
+  real start and end the cards need the gutter back.
 */
 @media (prefers-reduced-motion: reduce) {
   .marquee {
-    overflow-x: auto;
     scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
+    scroll-padding-inline-start: 0;
     padding: 0 16px;
     -webkit-mask-image: none;
     mask-image: none;
   }
-  .marquee__track {
-    width: auto;
-    animation: none;
-  }
   .marquee__group[aria-hidden="true"] {
     display: none;
-  }
-  .marquee .carousel__item {
-    scroll-snap-align: start;
   }
 }
 
@@ -2058,23 +2093,12 @@ body.locked {
 }
 
 /*
-  Re-scope the hover pause to real pointers.
-
-  On touch, :hover latches onto the last-tapped element and stays there until
-  something else is tapped — so one tap on a card could leave the marquee
-  paused indefinitely, which looks exactly like a broken loop. Keyboard focus
-  still pauses it, because a keyboard user genuinely needs it to hold still.
+  The heading above the strip. A section heading like any other, so it takes
+  .h2 — see app/page.tsx for why it is an h2 and not an h3 — and only needs the
+  space between it and the panel above.
 */
-.marquee:hover .marquee__track {
-  animation-play-state: running;
-}
-@media (hover: hover) and (pointer: fine) {
-  .marquee:hover .marquee__track {
-    animation-play-state: paused;
-  }
-}
-.marquee:focus-within .marquee__track {
-  animation-play-state: paused;
+.marquee__head {
+  margin-top: 34px;
 }
 
 /* ------------------------------------------- jelly buttons ------------ */

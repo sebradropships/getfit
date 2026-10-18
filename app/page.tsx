@@ -274,7 +274,22 @@ export default async function LandingPage() {
             carousel of our own catalogue instead. Do not point this back at
             product.images without looking at the images first.
           */}
-          <ProductCarousel products={more} />
+          {/*
+            An h2, not an h3, even though the section already has one. Heading
+            level is about how topics nest, not how markup nests: the rest of
+            this section explains the mystery box, and this strip is the other
+            things we sell — a sibling subject, not a subdivision of it. The
+            cards inside carry h3 names, so an h3 here would sit at the same
+            level as the cards it is meant to introduce.
+
+            Written in natural case because .h2 already uppercases it; literal
+            all-caps is what makes a screen reader spell a word out letter by
+            letter. Every other h2 in this file is written the same way.
+          */}
+          <h2 className="h2 reveal marquee__head" id="more-squishies-head">
+            Explore special ones
+          </h2>
+          <ProductCarousel products={more} labelledBy="more-squishies-head" />
         </div>
       </section>
 
