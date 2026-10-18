@@ -287,18 +287,19 @@ export const FLASH_SALE = {
  * is claimed. Add entries only when they are real — an advertised policy is an
  * enforceable promise.
  *
- * The shipping line is deliberately conditional. Shopify's US zone carries two
- * active Economy rates: $6.50 flat, and $0.00 gated on TOTAL_PRICE >= $60.00.
- * So free shipping is real but threshold-based, and a bare "Free shipping"
- * badge would be false on every single-tier order — the $59.99 four-box misses
- * the gate by one cent. Stating the threshold keeps it true and makes the badge
- * do upsell work instead. If the Shopify threshold changes, change this line in
- * the same commit.
+ * The shipping line is unconditional now because the rate behind it is. The
+ * US zone used to carry a $6.50 flat Economy rate alongside a $0.00 tier gated
+ * on TOTAL_PRICE >= $60.00, which is why this once read "over $60" — an
+ * unqualified claim would have been false on every order under the gate, and
+ * the $59.99 four-box missed it by a cent. That method has been replaced with
+ * a single "Free shipping" rate at $0.00 carrying no conditions, so the badge
+ * and the checkout agree. Reintroduce a paid rate and this line has to change
+ * in the same commit.
  */
 export const TRUST = [
   { icon: "🔒", label: "Secure checkout" },
   { icon: "📦", label: "Order tracking" },
-  { icon: "🚚", label: "Free shipping over $60" },
+  { icon: "🚚", label: "Free shipping" },
 ] as const;
 
 /* ------------------------------------------------------- more products */
