@@ -351,7 +351,6 @@ export const MORE_PRODUCTS: readonly string[] = [
   "sensory-cube-squishy",
   "jellyfish-squishy",
   "glitter-dumpling-squishy",
-  "glitter-dumpling-squishy-set",
   "fruit-maltose-toothpaste-squishy",
 
   /*
@@ -362,7 +361,6 @@ export const MORE_PRODUCTS: readonly string[] = [
   */
   "chocolate-squishy",
   "fried-chicken-squishy",
-  "fried-egg-toast-squishy",
   "bread-cat-squishy",
   "gold-bar-squishy",
 
@@ -373,7 +371,6 @@ export const MORE_PRODUCTS: readonly string[] = [
     for the complete catalogue; expect each pair to read as a repeat in the
     carousel until one of each is retired.
   */
-  "fried-chicken-drumstick-squishy",
 ];
 
 /* ----------------------------------------------------------------- reviews */
