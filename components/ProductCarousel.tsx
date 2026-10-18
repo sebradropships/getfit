@@ -124,10 +124,17 @@ function Card({ product, duplicate }: { product: Product; duplicate: boolean }) 
 export default function ProductCarousel({ products }: { products: Product[] }) {
   if (products.length === 0) return null;
 
-  // Roughly five seconds per card, so the speed stays constant as the
-  // catalogue grows instead of accelerating with every product added, and
-  // so the wider cards drift rather than race.
-  const duration = Math.max(30, products.length * 5);
+  /*
+    Seconds per card, which keeps the speed constant as the catalogue grows
+    rather than accelerating with every product added.
+
+    2.5s, not 5s. At 5s the strip crawled at 54px/s, so a card took fifty
+    seconds to come back around -- measured on the live page, along with the
+    seam, which is gapless to within 0.01px. Nothing was broken; it was just
+    slow enough that the wait read as a gap. This roughly doubles it to
+    ~109px/s, which still leaves each card about ten seconds on screen.
+  */
+  const duration = Math.max(20, products.length * 2.5);
 
   return (
     <div className="marquee">
