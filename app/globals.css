@@ -1998,3 +1998,97 @@ body.locked {
   border: 0;
   border-radius: 0;
 }
+
+/* ------------------------------- compact mystery panel ---------------- */
+
+/*
+  The panel measured 609px tall: most of that was the unboxing shot rendered
+  at its native 2:3, plus a 46px headline that wrapped to three lines in a
+  half-width column. Both are reined in so this reads as a card on the way
+  down the page rather than a second hero competing with the real one.
+*/
+.mystery {
+  padding: 24px 18px;
+}
+@media (min-width: 768px) {
+  .mystery {
+    padding: 28px 26px;
+  }
+}
+.mystery__grid {
+  gap: 16px;
+}
+@media (min-width: 768px) {
+  .mystery__grid {
+    gap: 26px;
+  }
+}
+/* A 4:3 crop of a 2:3 source. The hands and the box sit centred in the frame,
+   so the crop takes only blanket and loses nothing that carries the message. */
+.mystery__shot img {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: center;
+}
+.mystery__cap {
+  margin-top: 0;
+  font-size: 13px;
+}
+.mystery__count {
+  margin-top: 12px;
+  font-size: clamp(22px, 4.6vw, 32px);
+}
+.mystery__sub {
+  margin-top: 8px;
+  font-size: 13.5px;
+}
+
+/* ------------------------------- larger sliding cards ----------------- */
+
+.marquee .carousel__item {
+  flex-basis: 215px;
+}
+@media (min-width: 700px) {
+  .marquee .carousel__item {
+    flex-basis: 260px;
+  }
+}
+@media (min-width: 1000px) {
+  .marquee .carousel__item {
+    flex-basis: 300px;
+  }
+}
+/* Type scaled with the card so a 300px card does not read as a 170px card
+   that someone stretched. */
+.marquee .pcard__name {
+  font-size: 15.5px;
+}
+.marquee .pcard__blurb {
+  font-size: 13px;
+}
+.marquee .pcard__price {
+  font-size: 21px;
+}
+.marquee .pcard__stock {
+  font-size: 13px;
+}
+
+/*
+  Re-scope the hover pause to real pointers.
+
+  On touch, :hover latches onto the last-tapped element and stays there until
+  something else is tapped — so one tap on a card could leave the marquee
+  paused indefinitely, which looks exactly like a broken loop. Keyboard focus
+  still pauses it, because a keyboard user genuinely needs it to hold still.
+*/
+.marquee:hover .marquee__track {
+  animation-play-state: running;
+}
+@media (hover: hover) and (pointer: fine) {
+  .marquee:hover .marquee__track {
+    animation-play-state: paused;
+  }
+}
+.marquee:focus-within .marquee__track {
+  animation-play-state: paused;
+}

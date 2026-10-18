@@ -75,7 +75,7 @@ function Card({ product, duplicate }: { product: Product; duplicate: boolean }) 
             alt={duplicate ? "" : image.altText || product.title}
             width={image.width}
             height={image.height}
-            sizes="220px"
+            sizes="(min-width: 1000px) 300px, (min-width: 700px) 260px, 215px"
           />
         )}
 
@@ -124,9 +124,10 @@ function Card({ product, duplicate }: { product: Product; duplicate: boolean }) 
 export default function ProductCarousel({ products }: { products: Product[] }) {
   if (products.length === 0) return null;
 
-  // Roughly four seconds per card, so the speed stays constant as the
-  // catalogue grows instead of accelerating with every product added.
-  const duration = Math.max(24, products.length * 4);
+  // Roughly five seconds per card, so the speed stays constant as the
+  // catalogue grows instead of accelerating with every product added, and
+  // so the wider cards drift rather than race.
+  const duration = Math.max(30, products.length * 5);
 
   return (
     <div className="marquee">

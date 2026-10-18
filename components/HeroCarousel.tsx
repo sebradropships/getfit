@@ -27,7 +27,7 @@ export type HeroSlide = {
  */
 export default function HeroCarousel({
   slides,
-  intervalMs = 4200,
+  intervalMs = 3000,
 }: {
   slides: readonly HeroSlide[];
   intervalMs?: number;
