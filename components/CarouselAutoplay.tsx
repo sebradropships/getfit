@@ -467,8 +467,15 @@ export default function CarouselAutoplay({
     into the client bundle.
   */
   return (
-    <div className="marquee" ref={hostRef}>
-      {children}
+    /*
+      The fade at each end lives on this static parent, not on the scroller.
+      See .marquee-port in globals.css: masking the scroller is what blanked
+      the strip on iOS.
+    */
+    <div className="marquee-port">
+      <div className="marquee" ref={hostRef}>
+        {children}
+      </div>
     </div>
   );
 }
