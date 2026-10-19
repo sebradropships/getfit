@@ -1978,18 +1978,35 @@ body.locked {
 
 /* Fixed widths: a percentage basis inside a max-content track would resolve
    against the track rather than the viewport. */
+/*
+  Card width is set with `width`, NOT `flex-basis`, and this is load-bearing.
+
+  WebKit sizes this flex container from its items' max-content contributions
+  and, unlike Blink, ignores a flex-basis when doing so: it uses the width the
+  card's text would want if nothing ever wrapped. Measured on an iPhone 13
+  profile, each card contributed about 352px more than its real 215px, so a
+  copy of thirteen cards reported 7518px while its cards still painted across
+  2939px — 4573px of empty track welded to the end of every copy. The strip
+  then scrolled into that void and the section looked blank for ten seconds at
+  a time, in Safari and in Chrome and Brave on iOS, which are all WebKit.
+
+  An explicit width is honoured by both engines: it takes WebKit's group from
+  7518px back to 2951px and leaves Blink's untouched. `flex: 0 0 auto` keeps
+  the item from growing or shrinking away from it.
+*/
 .marquee .carousel__item {
-  flex: 0 0 170px;
+  flex: 0 0 auto;
+  width: 170px;
   scroll-snap-align: start;
 }
 @media (min-width: 700px) {
   .marquee .carousel__item {
-    flex-basis: 200px;
+    width: 200px;
   }
 }
 @media (min-width: 1000px) {
   .marquee .carousel__item {
-    flex-basis: 220px;
+    width: 220px;
   }
 }
 
@@ -2091,17 +2108,18 @@ body.locked {
 
 /* ------------------------------- larger sliding cards ----------------- */
 
+/* width, not flex-basis — see the note on the base rule above. */
 .marquee .carousel__item {
-  flex-basis: 215px;
+  width: 215px;
 }
 @media (min-width: 700px) {
   .marquee .carousel__item {
-    flex-basis: 260px;
+    width: 260px;
   }
 }
 @media (min-width: 1000px) {
   .marquee .carousel__item {
-    flex-basis: 300px;
+    width: 300px;
   }
 }
 /* Type scaled with the card so a 300px card does not read as a 170px card
