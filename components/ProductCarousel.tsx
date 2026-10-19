@@ -131,18 +131,26 @@ export default function ProductCarousel({
     Seconds per card, which keeps the speed constant as the catalogue grows
     rather than accelerating with every product added.
 
-    Both ends of this have been wrong, so the numbers are worth keeping. At
-    5s the strip crawled at 54px/s and a card took fifty seconds to come back
-    around, which read as a gap in the loop even though the seam measures
-    gapless to within 0.01px on the live page. At 2.5s it ran at 109px/s,
-    which cured the stall but pushed the cards past a comfortable reading and
-    tapping speed. 3.5s sits between the two: ~78px/s, a full cycle in 45s.
+    This number is a wait, not a speed, and that is the thing to hold on to.
+    The loop itself is seamless and has been measured as such repeatedly: on
+    a 390px phone, 95 seconds of untouched autoplay never leaves more than
+    12px of the strip uncovered, which is the gap between two cards. What a
+    visitor actually complains about is how long a particular product takes
+    to come back, and that is the cycle: thirteen cards at 3.5s each ran for
+    45.5s, of which any one card spent about 30s off screen on a phone. Read
+    as a blank section, which is what it was reported as, twice.
+
+    So: 2.5s, a 32.5s cycle, a product back in roughly 21s. Going slower
+    lengthens that wait in direct proportion, because the strip has a fixed
+    width and the period is width over speed. The only way to shorten the
+    wait without moving faster is to put fewer or narrower cards in
+    MORE_PRODUCTS; there is no third lever.
 
     The loop takes its speed from this and the measured copy width, so the
     number still means seconds per card at every breakpoint — the same
     arithmetic the CSS animation used to do.
   */
-  const cycleSeconds = Math.max(20, products.length * 3.5);
+  const cycleSeconds = Math.max(20, products.length * 2.5);
 
   /* The real list is the middle copy, so the strip rests on the cards that
      carry the markup rather than on a decorative one. A tab into the strip
