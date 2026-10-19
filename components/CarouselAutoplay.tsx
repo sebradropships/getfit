@@ -424,6 +424,46 @@ export default function CarouselAutoplay({
     ro.observe(group);
     ro.observe(host);
 
+    /*
+      Load every copy's pictures as soon as the strip is near the window.
+
+      The cards are marked loading="lazy", which the browser resolves against
+      the WINDOW, not against this scroller. Two of the three copies sit
+      thousands of pixels off to the right inside it and so never qualify,
+      and horizontal movement does not reliably re-trigger the check: measured
+      on the live page, 14 of 39 pictures had decoded after the strip had been
+      running for a minute. The cards themselves are laid out and spaced
+      correctly — which is why every geometric check of the seam came back at
+      a clean 12px — but a card with no picture reads as a hole, and the pair
+      either side of the seam is the one people notice.
+
+      Promoting them costs no extra download: all three copies point at the
+      same thirteen URLs, so the duplicates resolve out of cache. It waits for
+      the strip to approach the window rather than firing at load, because
+      thirteen product images competing with the hero would cost the page its
+      LCP to fix a strip nobody has scrolled to yet.
+    */
+    let io: IntersectionObserver | undefined;
+    const wake = () => {
+      for (const img of track.querySelectorAll("img")) {
+        if (img.loading === "lazy") img.loading = "eager";
+      }
+    };
+    if (typeof IntersectionObserver === "undefined") {
+      wake();
+    } else {
+      io = new IntersectionObserver(
+        (entries) => {
+          if (!entries.some((e) => e.isIntersecting)) return;
+          wake();
+          io?.disconnect();
+          io = undefined;
+        },
+        { rootMargin: "400px 0px" }
+      );
+      io.observe(host);
+    }
+
     host.addEventListener("scroll", onScroll, { passive: true });
     host.addEventListener("wheel", onWheel, { passive: true });
     host.addEventListener("pointerdown", onPointerDown);
@@ -457,6 +497,7 @@ export default function CarouselAutoplay({
       window.removeEventListener("pointerup", onPointerUp);
       window.removeEventListener("pointercancel", onPointerUp);
       motion.removeEventListener("change", start);
+      io?.disconnect();
     };
   }, [cycleSeconds]);
 
