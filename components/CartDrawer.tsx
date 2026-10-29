@@ -79,11 +79,11 @@ export default function CartDrawer({
             <div className="empty">
               <h3>Your cart is waiting.</h3>
               <p>
-                Discover something designed to become part of your everyday
-                ritual.
+                Soft, slow-rising squishies packed at random — no two boxes are
+                the same.
               </p>
               <Link href={shopHref} className="btn btn--primary" onClick={closeCart}>
-                Shop the bracelet
+                Choose your Squishies☺️
               </Link>
             </div>
           ) : (
