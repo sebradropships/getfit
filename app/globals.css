@@ -2637,3 +2637,37 @@ body.locked {
     animation: none;
   }
 }
+
+/* ------------------------------------------- review headlines + average */
+
+/*
+  The average sits above the grid and names what it averages. It is not a
+  product rating — see REVIEWS_ARE_PRODUCT_SPECIFIC in lib/squishy-config.ts —
+  so it is styled as a line of copy rather than as a badge on the box.
+*/
+.reviews__avg {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+.reviews__avg strong {
+  color: var(--ink);
+}
+.reviews__avg .stars {
+  color: var(--yellow);
+  letter-spacing: 0.04em;
+}
+
+/* The customer's own headline, above their words. */
+.review__title {
+  margin: 8px 0 6px;
+  font-family: var(--font-display), sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--ink);
+}

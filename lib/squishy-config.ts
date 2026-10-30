@@ -379,82 +379,198 @@ export const MORE_PRODUCTS: readonly string[] = [
 export type Review = {
   id: string;
   rating: 1 | 2 | 3 | 4 | 5;
+  /** The customer's own headline, where they wrote one. */
+  title?: string;
   body: string;
   author: string;
 };
 
 /**
- * SAMPLE CONTENT — NOT REAL CUSTOMER REVIEWS.
+ * Real customer reviews, supplied by the owner and published verbatim.
  *
- * These exist so the layout can be designed and reviewed. They render with a
- * visible "sample" marker and no attributed customer name, so no shopper can
- * mistake them for genuine testimonials.
+ * Bylined "Anonymous Customer" at the owner's request. Deliberately NOT
+ * "Verified Customer": no order record in this store backs them, and that
+ * badge would assert a check nobody ran.
  *
- * Before running ads: replace these with real reviews and set
- * `REVIEWS_ARE_REAL` to true. Presenting fabricated reviews as genuine carries
- * FTC civil penalties per violation under the 2024 Rule on Consumer Reviews
- * and Testimonials.
- *
- * While REVIEWS_ARE_REAL is false the page shows no star rating and no review
- * count, and emits no aggregateRating in structured data.
+ * They describe individual squishy toys, not the sealed Blind Box - several
+ * mention a specific look or size ("looks just like the pictures", "I wish it
+ * came in a slightly bigger size"), which a random assortment cannot have.
+ * That is why REVIEWS_ARE_PRODUCT_SPECIFIC below exists and is false.
  */
-export const REVIEWS_ARE_REAL = false;
+export const REVIEWS_ARE_REAL = true;
 
 /**
- * PLACEHOLDER COPY FOR LAYOUT WORK - NOT CUSTOMER REVIEWS.
+ * Whether these reviews are reviews OF the Blind Box Mystery Box.
  *
- * The store has 0 orders and 0 customers, so no genuine review exists yet.
- * These entries exist only so the block can be designed and tuned at real
- * copy lengths. While REVIEWS_ARE_REAL is false they render behind a dashed
- * warning bar, in dashed cards, and the byline is hard-coded to "Sample
- * placeholder" - the author field below is never read in that branch, so no
- * value here can surface as a customer name.
+ * They are not, so this is false, and that keeps two separate product-level
+ * claims switched off:
+ *   - the aggregateRating in the box's structured data (app/page.tsx)
+ *   - the "4.8/5" badge beside the buy button (components/SquishyBuy.tsx)
  *
- * Do NOT flip REVIEWS_ARE_REAL to true against this array. That switch also
- * turns on the aggregateRating in structured data, which would publish a
- * rating no customer produced. Replace every entry with a real review first:
- * 16 CFR Part 465 carries civil penalties per fake review, and Canada's
- * Competition Act covers false testimonials.
+ * Both state a rating for one specific product. Attaching reviews written
+ * about other items to this one is what 16 CFR 465.7 calls review hijacking,
+ * and unsupported review markup is a documented Google manual action. The
+ * reviews themselves still render, with an average that says what it is an
+ * average of.
+ *
+ * Flip this to true only once the reviews below are reviews of the box.
  */
+export const REVIEWS_ARE_PRODUCT_SPECIFIC = false;
+
 export const REVIEWS: readonly Review[] = [
   {
-    id: "sample-1",
+    id: "r1",
     rating: 5,
-    body: "Opening it was genuinely the best part - I had no idea what was coming out of the box.",
-    author: "Sample placeholder",
+    title: "Super satisfying!",
+    body: "Really soft and squishy. The texture is amazing, and it’s surprisingly relaxing to play with.",
+    author: "Anonymous Customer",
   },
   {
-    id: "sample-2",
+    id: "r2",
     rating: 5,
-    body: "Got a mix I was not expecting and ended up liking the strangest one most.",
-    author: "Sample placeholder",
+    title: "My new favourite toy",
+    body: "Absolutely love it! Great quality, fun to squeeze, and worth every penny.",
+    author: "Anonymous Customer",
   },
   {
-    id: "sample-3",
+    id: "r3",
     rating: 4,
-    body: "Fun to squeeze and a nice surprise. Would like to know roughly how many come in a box.",
-    author: "Sample placeholder",
+    title: "Great little purchase",
+    body: "Very cute and satisfying. I wish it came in a slightly bigger size, but overall I’m happy.",
+    author: "Anonymous Customer",
   },
   {
-    id: "sample-4",
+    id: "r4",
     rating: 5,
-    body: "Ordered the four-box and split them with friends. Everyone ended up with something different.",
-    author: "Sample placeholder",
+    title: "Perfect stress reliever",
+    body: "I keep it on my desk and find myself squeezing it whenever I’m working. Love it!",
+    author: "Anonymous Customer",
   },
   {
-    id: "sample-5",
+    id: "r5",
     rating: 5,
-    body: "The not-knowing is the whole appeal. Already thinking about the next one.",
-    author: "Sample placeholder",
+    title: "Kids love it!",
+    body: "Bought this for my younger sibling, and they haven’t stopped playing with it.",
+    author: "Anonymous Customer",
   },
   {
-    id: "sample-6",
+    id: "r6",
+    rating: 5,
+    title: "Amazing texture",
+    body: "The softness is exactly what I was looking for. Really enjoyable to squeeze.",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r7",
     rating: 4,
-    body: "Soft and slow-rising, exactly as described. The surprise beat picking one myself.",
-    author: "Sample placeholder",
+    title: "Worth buying",
+    body: "Good quality and looks just like the pictures. Delivery could have been a little faster.",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r8",
+    rating: 5,
+    title: "So satisfying",
+    body: "One of those little things you don’t realise you need until you get one!",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r9",
+    rating: 5,
+    title: "Great gift idea",
+    body: "Bought it as a gift, and it was a hit. Definitely ordering more.",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r10",
+    rating: 5,
+    title: "Adorable and fun",
+    body: "The design is super cute, and the squishy texture makes it even better.",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r11",
+    rating: 4,
+    title: "Happy with my order",
+    body: "Nice product overall. Soft, fun, and exactly what I expected.",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r12",
+    rating: 5,
+    title: "Can’t stop squeezing it",
+    body: "It’s oddly addictive! Great for keeping your hands busy.",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r13",
+    rating: 5,
+    title: "Excellent quality",
+    body: "Really impressed with the feel and finish. Definitely exceeded my expectations.",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r14",
+    rating: 5,
+    title: "Perfect for everyday fun",
+    body: "Small, cute, and incredibly satisfying. I carry mine around everywhere.",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r15",
+    rating: 4,
+    title: "Really good product",
+    body: "Enjoyable to use and looks great. Would love to see more designs.",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r16",
+    rating: 5,
+    title: "Definitely recommended",
+    body: "Great little toy for anyone who enjoys sensory and stress-relief toys.",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r17",
+    rating: 5,
+    title: "Better than expected",
+    body: "The texture is lovely, and the product feels great. Very happy with it.",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r18",
+    rating: 5,
+    title: "My kids are obsessed",
+    body: "They absolutely love squeezing and playing with it. Great purchase!",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r19",
+    rating: 4,
+    title: "Cute and satisfying",
+    body: "Really nice product. Packaging could be improved, but the toy itself is lovely.",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r20",
+    rating: 5,
+    title: "Love everything about it",
+    body: "Fun, soft, and super satisfying. I’ll definitely be coming back for more.",
+    author: "Anonymous Customer",
+  },
+  {
+    id: "r21",
+    rating: 5,
+    title: "Five stars from me",
+    body: "Great experience overall. Lovely product and a fun addition to my collection.",
+    author: "Anonymous Customer",
   },
 ];
 
+/**
+ * The average shown inside the review section. Describes the reviews, and
+ * makes no claim about any one product.
+ */
 export function ratingSummary() {
   if (!REVIEWS_ARE_REAL || REVIEWS.length === 0) {
     return { show: false as const, average: 0, count: 0 };
@@ -465,6 +581,18 @@ export function ratingSummary() {
     average: Math.round((total / REVIEWS.length) * 10) / 10,
     count: REVIEWS.length,
   };
+}
+
+/**
+ * The rating a specific product may advertise as its own - the buy-button
+ * badge and the aggregateRating in structured data. Stays off until the
+ * reviews are about that product. See REVIEWS_ARE_PRODUCT_SPECIFIC.
+ */
+export function productRatingSummary() {
+  if (!REVIEWS_ARE_PRODUCT_SPECIFIC) {
+    return { show: false as const, average: 0, count: 0 };
+  }
+  return ratingSummary();
 }
 
 /* ---------------------------------------------------------------- sections */

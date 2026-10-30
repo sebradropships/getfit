@@ -12,7 +12,7 @@ import {
   TRUST,
   bestBundleSaving,
   findVariant,
-  ratingSummary,
+  productRatingSummary,
   type Bundle,
 } from "@/lib/squishy-config";
 
@@ -197,7 +197,7 @@ export default function SquishyBuy({ product }: { product: Product | null }) {
       : null;
 
   const bestSaving = bestBundleSaving(product);
-  const rating = ratingSummary();
+  const rating = productRatingSummary();
   const stock = selected?.variant
     ? lowStock(selected.variant.quantityAvailable)
     : null;

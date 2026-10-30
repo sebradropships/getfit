@@ -19,6 +19,7 @@ import {
   bestBundleSaving,
   findVariant,
   ratingSummary,
+  productRatingSummary,
 } from "@/lib/squishy-config";
 
 export const revalidate = 60;
@@ -65,7 +66,7 @@ function Floaties({ items }: { items: string[] }) {
 }
 
 function productJsonLd(product: Product | null) {
-  const rating = ratingSummary();
+  const rating = productRatingSummary();
   const variant = product?.variants[0];
 
   return {
@@ -109,6 +110,9 @@ function productJsonLd(product: Product | null) {
 }
 
 export default async function LandingPage() {
+  /* Describes the reviews themselves. productRatingSummary() is the separate,
+     currently-off summary a single product may advertise as its own. */
+  const reviewAvg = ratingSummary();
   // A missing product must not take the page down — it renders in preview mode
   // so the page can be built and reviewed before Shopify is ready.
   let product: Product | null = null;
@@ -318,17 +322,32 @@ export default async function LandingPage() {
             also reads as a launch, not as a shop nobody has bought from.
           */}
           {REVIEWS_ARE_REAL && REVIEWS.length > 0 ? (
-            <div className="reviews">
+            <>
+              {/*
+                Says what the average is an average of. These are reviews of
+                our squishies rather than of the sealed box, so the line names
+                that rather than letting the number imply otherwise.
+              */}
+              <p className="reviews__avg reveal">
+                <span className="stars" aria-hidden="true">
+                  {"\u2605".repeat(5)}
+                </span>
+                <strong>{reviewAvg.average} out of 5</strong> from{" "}
+                {reviewAvg.count} customer reviews of our squishy toys
+              </p>
+              <div className="reviews">
               {REVIEWS.map((r) => (
                 <div className="review reveal" key={r.id}>
                   <span className="stars" aria-label={`${r.rating} out of 5`}>
                     {"★".repeat(r.rating)}
                   </span>
+                  {r.title && <h3 className="review__title">{r.title}</h3>}
                   <p>{r.body}</p>
                   <div className="review__who">{r.author}</div>
                 </div>
               ))}
-            </div>
+              </div>
+            </>
           ) : REVIEWS.length > 0 ? (
             /*
               Placeholder branch: REVIEWS holds copy but REVIEWS_ARE_REAL is
