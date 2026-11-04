@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useCart } from "./CartProvider";
 import { lowStock } from "@/lib/catalog";
 import type { Money, Product } from "@/lib/catalog";
+import { track } from "@/lib/pixel";
 
 function money(m: Money): string {
   return new Intl.NumberFormat("en-US", {
@@ -27,6 +28,39 @@ export default function ProductBuy({ product }: { product: Product }) {
   const sellable = product.variants.filter((v) => v.availableForSale);
   const [selectedId, setSelectedId] = useState<string>(sellable[0]?.id ?? "");
   const selected = sellable.find((v) => v.id === selectedId) ?? sellable[0] ?? null;
+
+  /*
+    ViewContent, once per product page.
+
+    It lives here rather than in a tracker component rendered by the page
+    because `selected` is the single source of truth for what this page is
+    actually offering. A separate component would have to re-derive "first
+    sellable variant" and could drift, reporting a variant the shopper was
+    never shown.
+
+    Fired once per product id, deliberately not on every variant change:
+    re-firing on each radio click would stack several ViewContents against one
+    page view and quietly understate cost per view. The ref also absorbs the
+    double effect invocation React Strict Mode does in development.
+
+    No wait for the pixel is needed — the base code runs inline during parse,
+    so window.fbq exists (as the queueing stub at worst) long before this
+    effect, and track() is a no-op when it does not.
+  */
+  const viewed = useRef<string | null>(null);
+  useEffect(() => {
+    if (!selected) return;
+    if (viewed.current === product.id) return;
+    viewed.current = product.id;
+
+    track("ViewContent", {
+      content_ids: [selected.id],
+      content_type: "product",
+      content_name: product.title,
+      currency: selected.price.currencyCode,
+      value: Number(selected.price.amount),
+    });
+  }, [product.id, product.title, selected]);
 
   if (!selected) {
     return (
