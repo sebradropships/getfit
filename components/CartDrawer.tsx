@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCart } from "./CartProvider";
 import { cdnImage, cdnSrcSet, formatMoney } from "@/lib/catalog";
+import { track } from "@/lib/pixel";
 
 export default function CartDrawer({
   shopHref,
@@ -196,6 +197,13 @@ export default function CartDrawer({
               className="btn btn--primary"
               href={cart.checkoutUrl}
               aria-disabled={pending}
+              onClick={() =>
+                track("InitiateCheckout", {
+                  currency: cart.subtotal.currencyCode,
+                  value: Number(cart.subtotal.amount),
+                  num_items: cart.lines.reduce((n, l) => n + l.quantity, 0),
+                })
+              }
             >
               Checkout
             </a>

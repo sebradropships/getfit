@@ -5,6 +5,7 @@ import "./globals.css";
 import { SITE_URL } from "@/lib/squishy-config";
 
 import AnnouncementStrip from "@/components/AnnouncementStrip";
+import MetaPixel from "@/components/MetaPixel";
 import CartProvider from "@/components/CartProvider";
 import CartDrawer from "@/components/CartDrawer";
 import Header from "@/components/Header";
@@ -58,6 +59,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body>
+        {/* First thing in the body: the base code runs during parse, before
+            hydration and before first paint, so PageView never waits on the
+            React bundle. Renders null until NEXT_PUBLIC_META_PIXEL_ID is set. */}
+        <MetaPixel />
+
         <a className="skip" href="#main">
           Skip to content
         </a>

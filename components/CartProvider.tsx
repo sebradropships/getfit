@@ -18,6 +18,7 @@ import {
 } from "@/app/actions";
 import { usePathname } from "next/navigation";
 import type { Cart } from "@/lib/catalog";
+import { track } from "@/lib/pixel";
 
 type CartContextValue = {
   cart: Cart | null;
@@ -105,6 +106,13 @@ export default function CartProvider({
 
       if (result.ok) {
         setCart(result.cart);
+        track("AddToCart", {
+          content_ids: [merchandiseId],
+          content_type: "product",
+          num_items: quantity,
+          currency: result.cart.subtotal.currencyCode,
+          value: Number(result.cart.subtotal.amount),
+        });
         return true;
       }
 
