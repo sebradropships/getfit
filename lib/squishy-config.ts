@@ -375,16 +375,12 @@ export const MORE_PRODUCTS: readonly string[] = [
 
   /*
     Viral Butter Squishy, added 5 Nov 2026 and published to Squishy Headless
-    03 on the owner's confirmation.
-
-    NOTE, against the convention stated at the top of this list: this is the
-    SUPPLIER-GENERATED slug, not a hand-set permanent handle. Retitling the
-    product in Shopify can regenerate it, and because getProductsByHandles
-    drops anything that does not resolve, the card would then vanish from the
-    carousel with no error anywhere. Give it a short permanent handle in
-    Shopify and shorten this entry in the same commit.
+    03. First listed under the supplier-generated slug, then repointed here
+    once a permanent handle was set by hand in Shopify — which is what the
+    convention at the top of this list asks for, and what keeps a retitle in
+    Shopify from silently emptying this card out of the carousel.
   */
-  "23cm-large-butter-stick-soft-toy-with-slow-rebound-for-decompression-squeezing-toy-for-pressure-release-hand-relaxation-gift-toy",
+  "viral-butter-squishy",
 ];
 
 /* ----------------------------------------------------------------- reviews */
