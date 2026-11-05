@@ -386,6 +386,22 @@ export const MORE_PRODUCTS: readonly string[] = [
     Shopify from silently emptying this card out of the carousel.
   */
   "viral-butter-squishy",
+
+  /*
+    Big Size Peanut Squishy, added 5 Nov 2026.
+
+    It arrived published to NO sales channel at all - "This product is not
+    published anywhere" - so the Storefront API could not see it and every
+    URL for it 404'd. Publishing it to Squishy Headless 03 is what makes the
+    card render; listing the handle here alone would not have. Check the
+    channel first the next time a new product fails to appear.
+
+    Listed under a hand-set permanent handle, not the 97-character supplier
+    slug it shipped with, per the convention at the top of this list. No URL
+    redirect was created for the old slug because it was never published
+    anywhere, so nothing can be linking to it.
+  */
+  "big-size-peanut-squishy",
 ];
 
 /* ----------------------------------------------------------------- reviews */
