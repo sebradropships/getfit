@@ -343,9 +343,14 @@ export const MORE_PRODUCTS: readonly string[] = [
       shiny-malt-squishy               Hello Kitty, Sanrio
       sensory-cube-squishy             Starbucks siren + wordmark, Schylling
       jellyfish-squishy                NEE DOH embossed, identifiable person
-      glitter-dumpling-squishy         Squishy Steam Bunz
       glitter-dumpling-squishy-set     Squeezy Dumplings
       fruit-maltose-toothpaste-squishy Chiboki
+
+    CLEARED 2026-11-05 — glitter-dumpling-squishy was listed here for a
+    "Squishy Steam Bunz" mark. The owner confirms that photography is of the
+    actual product and packaging being sold, so there is no third-party mark
+    and nothing to replace. Do not re-flag it; it is the landing page for a
+    live ad set.
   */
   "chocolate-butter-sticks-squishy",
   "shiny-malt-squishy",
