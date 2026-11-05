@@ -21,18 +21,24 @@ const SHOP_ORIGIN = "https://shop.viraltoys.us";
 /**
  * Only policies that actually resolve are listed.
  *
- * Checked 2026-11-05: `privacy-policy` returns 200, while `terms-of-service`,
- * `refund-policy`, `shipping-policy` and `contact-information` all return 404
- * — those have never been created in Shopify. A dead link in a legal footer is
- * worse than an absent one: it reads as a policy that exists and cannot be
- * produced, which is the exact impression a low-quality-destination review is
- * looking for.
+ * Re-checked after the owner generated the missing ones: privacy-policy,
+ * terms-of-service, refund-policy and shipping-policy all return 200.
  *
- * To add the rest: Shopify admin → Settings → Policies, generate each from
- * Shopify's template, then add a line here. Nothing else needs to change.
+ * `contact-information` still returns 404 and is deliberately NOT linked — it
+ * is the one policy Shopify has no template for, so it stays empty until
+ * filled in by hand. Contact details live inside the policy documents
+ * themselves, which is why no separate contact link appears here.
+ *
+ * A dead link in a legal footer is worse than an absent one: it reads as a
+ * policy that exists and cannot be produced, which is the exact impression a
+ * low-quality-destination review is looking for. Verify a 200 before adding
+ * anything to this list.
  */
 const POLICIES: ReadonlyArray<{ label: string; href: string }> = [
   { label: "Privacy Policy", href: `${SHOP_ORIGIN}/policies/privacy-policy` },
+  { label: "Terms of Service", href: `${SHOP_ORIGIN}/policies/terms-of-service` },
+  { label: "Refund Policy", href: `${SHOP_ORIGIN}/policies/refund-policy` },
+  { label: "Shipping Policy", href: `${SHOP_ORIGIN}/policies/shipping-policy` },
 ];
 
 export default function SiteFooter() {
