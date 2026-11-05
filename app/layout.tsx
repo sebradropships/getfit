@@ -9,6 +9,7 @@ import MetaPixel from "@/components/MetaPixel";
 import CartProvider from "@/components/CartProvider";
 import CartDrawer from "@/components/CartDrawer";
 import Header from "@/components/Header";
+import SiteFooter from "@/components/SiteFooter";
 
 /**
  * Self-hosted at build time by next/font — no runtime request to Google, no
@@ -72,6 +73,10 @@ export default function RootLayout({
           <AnnouncementStrip />
           <Header />
           <main id="main">{children}</main>
+          {/* Inside CartProvider only because it sits in the same tree; it
+              holds no cart state. Outside <main> so it is not announced as
+              page content and the skip link still lands correctly. */}
+          <SiteFooter />
           <CartDrawer shopHref="#offer" freeShippingThreshold={null} />
         </CartProvider>
       </body>
