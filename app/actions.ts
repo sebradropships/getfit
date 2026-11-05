@@ -45,6 +45,33 @@ async function clearCartId() {
 }
 
 /**
+ * Meta's browser id and click id, lifted off the incoming request.
+ *
+ * Checkout happens on shop.viraltoys.us, so the Conversions API Purchase is
+ * assembled server-side from the Shopify order and never sees the shopper's
+ * browser. Attaching these at cart creation is what carries them across: they
+ * come back on the order as `note_attributes`, and the webhook route already
+ * reads exactly these two names. Without `_fbc` a purchase arrives with no
+ * click identifier at all, which a 7-day click-through ad set cannot attribute
+ * — the sale lands in Shopify and never in Ads Manager.
+ *
+ * Both are first-party cookies written by fbevents.js on viraltoys.us and are
+ * not httpOnly, so they ride along with the server action's own request and
+ * need no client plumbing. `_fbc` exists only when the visit carried an
+ * fbclid, which is exactly the paid-click case we care about; organic visits
+ * contribute `_fbp` alone, and anything absent is simply omitted rather than
+ * sent empty.
+ */
+async function metaAttribution(): Promise<Array<{ key: string; value: string }>> {
+  const jar = await cookies();
+
+  return (["_fbp", "_fbc"] as const).flatMap((name) => {
+    const value = jar.get(name)?.value;
+    return value ? [{ key: name, value }] : [];
+  });
+}
+
+/**
  * Reads the current cart. A cart ID that Shopify no longer recognises — one
  * that has already been checked out, or has expired — is cleared rather than
  * surfaced as an error, so the shopper simply sees an empty cart.
@@ -83,7 +110,11 @@ export async function addToCart(
       await clearCartId();
     }
 
-    const cart = await createCart(merchandiseId, quantity);
+    const cart = await createCart(
+      merchandiseId,
+      quantity,
+      await metaAttribution()
+    );
     await writeCartId(cart.id);
     return { ok: true, cart };
   } catch (err) {
@@ -147,7 +178,11 @@ export async function buyNow(
   quantity = 1
 ): Promise<CheckoutResult> {
   try {
-    const cart = await createCart(merchandiseId, quantity);
+    const cart = await createCart(
+      merchandiseId,
+      quantity,
+      await metaAttribution()
+    );
     return { ok: true, url: cart.checkoutUrl };
   } catch (err) {
     console.error(

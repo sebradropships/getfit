@@ -296,21 +296,30 @@ export async function getCart(cartId: string): Promise<Cart | null> {
   return data.cart ? normalizeCart(data.cart) : null;
 }
 
+/**
+ * `attributes` ride along to Shopify as cart attributes and reappear on the
+ * order as `note_attributes`, which is how Meta's `_fbp` / `_fbc` identifiers
+ * survive the jump to the hosted checkout on shop.viraltoys.us. Without them
+ * the Conversions API Purchase carries no click id, and a click-attributed
+ * campaign cannot bind the sale to the ad that produced it. Callers that have
+ * no attribution to pass simply omit this.
+ */
 export async function createCart(
   merchandiseId: string,
-  quantity: number
+  quantity: number,
+  attributes: ReadonlyArray<{ key: string; value: string }> = []
 ): Promise<Cart> {
   const data = await storefront<{
     cartCreate: { cart: RawCart | null } & UserErrors;
   }>(
     `${CART_FRAGMENT}
-     mutation CartCreate($lines: [CartLineInput!]!) {
-       cartCreate(input: { lines: $lines }) {
+     mutation CartCreate($lines: [CartLineInput!]!, $attributes: [AttributeInput!]) {
+       cartCreate(input: { lines: $lines, attributes: $attributes }) {
          cart { ...CartFields }
          userErrors { message }
        }
      }`,
-    { lines: [{ merchandiseId, quantity }] },
+    { lines: [{ merchandiseId, quantity }], attributes },
     false
   );
 
