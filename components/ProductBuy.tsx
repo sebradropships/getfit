@@ -6,6 +6,7 @@ import { useCart } from "./CartProvider";
 import { lowStock } from "@/lib/catalog";
 import type { Money, Product } from "@/lib/catalog";
 import { track } from "@/lib/pixel";
+import { ttTrack } from "@/lib/tiktok-pixel";
 
 function money(m: Money): string {
   return new Intl.NumberFormat("en-US", {
@@ -57,6 +58,27 @@ export default function ProductBuy({ product }: { product: Product }) {
       content_ids: [selected.id],
       content_type: "product",
       content_name: product.title,
+      currency: selected.price.currencyCode,
+      value: Number(selected.price.amount),
+    });
+
+    /*
+      The same view, for TikTok. Note the payload is NOT the Meta one: TikTok
+      takes a `contents` array of `content_id` objects and has no `content_ids`
+      field at all, so passing Meta's shape through would be accepted by the
+      pixel and recorded with no product attached — a populated event that
+      cannot build a product audience or report content-level cost.
+    */
+    ttTrack("ViewContent", {
+      contents: [
+        {
+          content_id: selected.id,
+          content_type: "product",
+          content_name: product.title,
+          price: Number(selected.price.amount),
+          quantity: 1,
+        },
+      ],
       currency: selected.price.currencyCode,
       value: Number(selected.price.amount),
     });

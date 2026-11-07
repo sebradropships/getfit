@@ -6,6 +6,7 @@ import { SITE_URL } from "@/lib/squishy-config";
 
 import AnnouncementStrip from "@/components/AnnouncementStrip";
 import MetaPixel from "@/components/MetaPixel";
+import TikTokPixel from "@/components/TikTokPixel";
 import CartProvider from "@/components/CartProvider";
 import CartDrawer from "@/components/CartDrawer";
 import Header from "@/components/Header";
@@ -64,6 +65,14 @@ export default function RootLayout({
             hydration and before first paint, so PageView never waits on the
             React bundle. Renders null until NEXT_PUBLIC_META_PIXEL_ID is set. */}
         <MetaPixel />
+
+        {/* Inline for the same reason, and ordered after Meta only because Meta
+            is the channel currently spending. The TikTok leg additionally banks
+            `ttclid` from the query string before its own script loads, because
+            TikTok's events.js never writes a `_fbc` equivalent itself — see
+            components/TikTokPixel.tsx. Renders null until
+            NEXT_PUBLIC_TIKTOK_PIXEL_ID is set. */}
+        <TikTokPixel />
 
         <a className="skip" href="#main">
           Skip to content

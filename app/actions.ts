@@ -9,6 +9,7 @@ import {
   updateCartLine,
 } from "@/lib/shopify";
 import type { Cart } from "@/lib/catalog";
+import { TTCLID_COOKIE, TTP_COOKIE } from "@/lib/tiktok-pixel";
 
 const CART_COOKIE = "cart_id";
 const THIRTY_DAYS = 60 * 60 * 24 * 30;
@@ -45,27 +46,44 @@ async function clearCartId() {
 }
 
 /**
- * Meta's browser id and click id, lifted off the incoming request.
+ * Browser and click identifiers for both ad platforms, lifted off the incoming
+ * request.
  *
- * Checkout happens on shop.viraltoys.us, so the Conversions API Purchase is
- * assembled server-side from the Shopify order and never sees the shopper's
- * browser. Attaching these at cart creation is what carries them across: they
- * come back on the order as `note_attributes`, and the webhook route already
- * reads exactly these two names. Without `_fbc` a purchase arrives with no
- * click identifier at all, which a 7-day click-through ad set cannot attribute
- * — the sale lands in Shopify and never in Ads Manager.
+ * Checkout happens on shop.viraltoys.us, so a server-side Purchase is
+ * assembled from the Shopify order and never sees the shopper's browser.
+ * Attaching these at cart creation is what carries them across: they come back
+ * on the order as `note_attributes`. Without a click id a purchase arrives with
+ * no way to tie it to an ad, which a 7-day click-through ad set cannot
+ * attribute — the sale lands in Shopify and never in the ads dashboard.
  *
- * Both are first-party cookies written by fbevents.js on viraltoys.us and are
- * not httpOnly, so they ride along with the server action's own request and
- * need no client plumbing. `_fbc` exists only when the visit carried an
- * fbclid, which is exactly the paid-click case we care about; organic visits
- * contribute `_fbp` alone, and anything absent is simply omitted rather than
- * sent empty.
+ * All four are first-party, non-httpOnly cookies on viraltoys.us, so they ride
+ * along with the server action's own request and need no client plumbing.
+ * Anything absent is omitted rather than sent empty.
+ *
+ * The two platforms are NOT symmetrical, and the asymmetry is invisible if you
+ * only read this list:
+ *
+ *   `_fbp` / `_fbc`   written by Meta's fbevents.js. It converts `?fbclid=`
+ *                     into `_fbc` by itself, so there is nothing to do but
+ *                     read it. The orders-paid webhook already consumes both.
+ *   `_ttp`            written by TikTok's events.js. The `_fbp` twin.
+ *   `_ttclid`         written by OUR OWN inline script in
+ *                     components/TikTokPixel.tsx. TikTok's events.js has no
+ *                     `_fbc` equivalent and leaves `ttclid` in the query
+ *                     string, so without that script this is always absent and
+ *                     the TikTok leg silently attributes nothing.
+ *
+ * The TikTok pair is banked here but not yet consumed: the orders-paid route
+ * sends Meta only. They land on the order from today so that the TikTok Events
+ * API relay, when it is added, has real click ids waiting for it in historical
+ * orders rather than starting cold.
  */
-async function metaAttribution(): Promise<Array<{ key: string; value: string }>> {
+async function clickAttribution(): Promise<Array<{ key: string; value: string }>> {
   const jar = await cookies();
 
-  return (["_fbp", "_fbc"] as const).flatMap((name) => {
+  const names = ["_fbp", "_fbc", TTP_COOKIE, TTCLID_COOKIE] as const;
+
+  return names.flatMap((name) => {
     const value = jar.get(name)?.value;
     return value ? [{ key: name, value }] : [];
   });
@@ -113,7 +131,7 @@ export async function addToCart(
     const cart = await createCart(
       merchandiseId,
       quantity,
-      await metaAttribution()
+      await clickAttribution()
     );
     await writeCartId(cart.id);
     return { ok: true, cart };
@@ -181,7 +199,7 @@ export async function buyNow(
     const cart = await createCart(
       merchandiseId,
       quantity,
-      await metaAttribution()
+      await clickAttribution()
     );
     return { ok: true, url: cart.checkoutUrl };
   } catch (err) {

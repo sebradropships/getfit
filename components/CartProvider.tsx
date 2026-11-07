@@ -19,6 +19,7 @@ import {
 import { usePathname } from "next/navigation";
 import type { Cart } from "@/lib/catalog";
 import { track } from "@/lib/pixel";
+import { ttTrack } from "@/lib/tiktok-pixel";
 
 type CartContextValue = {
   cart: Cart | null;
@@ -110,6 +111,19 @@ export default function CartProvider({
           content_ids: [merchandiseId],
           content_type: "product",
           num_items: quantity,
+          currency: result.cart.subtotal.currencyCode,
+          value: Number(result.cart.subtotal.amount),
+        });
+        /* TikTok's own payload shape — see the note in ProductBuy. `num_items`
+           does not exist here; quantity belongs inside `contents`. */
+        ttTrack("AddToCart", {
+          contents: [
+            {
+              content_id: merchandiseId,
+              content_type: "product",
+              quantity,
+            },
+          ],
           currency: result.cart.subtotal.currencyCode,
           value: Number(result.cart.subtotal.amount),
         });

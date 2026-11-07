@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCart } from "./CartProvider";
 import { cdnImage, cdnSrcSet, formatMoney } from "@/lib/catalog";
 import { track } from "@/lib/pixel";
+import { ttTrack } from "@/lib/tiktok-pixel";
 
 export default function CartDrawer({
   shopHref,
@@ -197,13 +198,31 @@ export default function CartDrawer({
               className="btn btn--primary"
               href={cart.checkoutUrl}
               aria-disabled={pending}
-              onClick={() =>
+              onClick={() => {
                 track("InitiateCheckout", {
                   currency: cart.subtotal.currencyCode,
                   value: Number(cart.subtotal.amount),
                   num_items: cart.lines.reduce((n, l) => n + l.quantity, 0),
-                })
-              }
+                });
+                /*
+                  This is the last event either pixel can fire from our domain
+                  — the next click is on shop.viraltoys.us, where only Shopify's
+                  own tags run. For TikTok that makes InitiateCheckout the
+                  deepest event it can see first-party, which is why it is worth
+                  sending the full line detail rather than a bare value.
+                */
+                ttTrack("InitiateCheckout", {
+                  contents: cart.lines.map((l) => ({
+                    content_id: l.merchandiseId,
+                    content_type: "product",
+                    content_name: l.title,
+                    quantity: l.quantity,
+                    price: Number(l.price.amount),
+                  })),
+                  currency: cart.subtotal.currencyCode,
+                  value: Number(cart.subtotal.amount),
+                });
+              }}
             >
               Checkout
             </a>
