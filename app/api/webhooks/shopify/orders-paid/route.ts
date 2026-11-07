@@ -37,6 +37,27 @@ function datasetId(): string {
   return env("META_DATASET_ID") || env("NEXT_PUBLIC_META_PIXEL_ID");
 }
 
+/**
+ * TikTok's equivalent, defaulting to the same pixel the browser posts to for
+ * the same reason as above. TIKTOK_EVENT_SOURCE_ID is the escape hatch.
+ */
+function tiktokEventSourceId(): string {
+  return env("TIKTOK_EVENT_SOURCE_ID") || env("NEXT_PUBLIC_TIKTOK_PIXEL_ID");
+}
+
+function tiktokConfigured(): boolean {
+  return Boolean(env("TIKTOK_EVENTS_API_TOKEN") && tiktokEventSourceId());
+}
+
+/** What one platform's relay attempt came back with. */
+type Relay = {
+  platform: "meta" | "tiktok";
+  sent: boolean;
+  /** True only for failures worth a Shopify redelivery. */
+  retry: boolean;
+  status?: number;
+};
+
 function json(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -275,6 +296,204 @@ function buildEvent(order: ShopifyOrder) {
   };
 }
 
+/* ----------------------------------------------------------------- tiktok */
+
+/**
+ * TikTok's click id for this order.
+ *
+ * Mirrors `fbcFrom`, with one difference worth knowing: there is no wrapper
+ * format. Meta wants `fb.1.<ms>.<fbclid>`; TikTok wants the raw `ttclid`
+ * exactly as it appeared in the URL, so nothing is assembled around it.
+ *
+ * `_ttclid` is written into cart attributes by `clickAttribution()` in
+ * app/actions.ts, which reads the cookie that our own inline script banks —
+ * TikTok's events.js never writes one. The `landing_site` fallback covers
+ * orders placed before that shipped, and costs nothing to keep.
+ */
+function ttclidFrom(order: ShopifyOrder): string | undefined {
+  const direct = noteAttr(order, "_ttclid", "ttclid");
+  if (direct) return direct;
+
+  const landing = order.landing_site;
+  if (!landing) return undefined;
+  try {
+    const url = new URL(landing, "https://viraltoys.us");
+    return url.searchParams.get("ttclid") ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * The same Purchase, in TikTok's shape.
+ *
+ * Built separately from the Meta event rather than mapped from it. The two
+ * APIs agree on the hard part — SHA-256 hex of a normalised value, which is
+ * why every `hashed()` helper above is reused verbatim — and disagree on
+ * nearly every name around it:
+ *
+ *   Meta                        TikTok
+ *   event_name                  event
+ *   user_data                   user
+ *   custom_data                 properties
+ *   em / ph / fn / ln           email / phone / first_name / last_name
+ *   ct / st / zp                city / state / zip_code
+ *   client_ip_address           ip
+ *   client_user_agent           user_agent
+ *   fbp / fbc                   ttp / ttclid
+ *   content_ids + contents      contents only, with content_id inside
+ *   ?access_token= query param  Access-Token request header
+ *
+ * Sending Meta's field names to TikTok yields a 200 with an event that has no
+ * user and no products attached — accepted, counted, and useless. That is the
+ * failure this file is written to avoid.
+ */
+function buildTikTokEvent(order: ShopifyOrder) {
+  const address = order.shipping_address ?? order.billing_address ?? null;
+  const id = exactId(order);
+
+  const createdMs = Date.parse(order.processed_at ?? order.created_at ?? "");
+  const nowMs = Date.now();
+  const eventTimeMs = Number.isFinite(createdMs) ? Math.min(createdMs, nowMs) : nowMs;
+
+  const user: Record<string, string> = {};
+  const put = (key: string, value: string | undefined) => {
+    if (value) user[key] = value;
+  };
+
+  put("email", hashed(order.email, plain));
+  put("phone", hashed(order.phone ?? address?.phone, phoneish));
+  put("first_name", hashed(order.customer?.first_name ?? address?.first_name, nameish));
+  put("last_name", hashed(order.customer?.last_name ?? address?.last_name, nameish));
+  put("city", hashed(address?.city, placeish));
+  put("state", hashed(address?.province_code, placeish));
+  put("zip_code", hashed(address?.zip, zipish));
+  put("country", hashed(address?.country_code, placeish));
+  put("external_id", hashed(exactId(order.customer) || undefined, plain));
+
+  /* Raw, like Meta's two exceptions — TikTok hashes neither of these. */
+  const ip = order.client_details?.browser_ip;
+  const ua = order.client_details?.user_agent;
+  if (ip) user.ip = String(ip);
+  if (ua) user.user_agent = String(ua);
+
+  put("ttp", noteAttr(order, "_ttp", "ttp"));
+  put("ttclid", ttclidFrom(order));
+
+  const lines = Array.isArray(order.line_items) ? order.line_items : [];
+  /* Same GID normalisation as the Meta path, so browser and server share one
+     id space on this platform too. */
+  const contents = lines
+    .filter((l) => l && l.variant_id !== null && l.variant_id !== undefined)
+    .map((l) => ({
+      content_id: `gid://shopify/ProductVariant/${l.variant_id}`,
+      content_type: "product",
+      quantity: Number(l.quantity) || 0,
+      price: Number(l.price) || 0,
+    }));
+
+  const value = Number(order.current_total_price ?? order.total_price ?? 0) || 0;
+
+  return {
+    event: "CompletePayment",
+    event_time: Math.floor(eventTimeMs / 1000),
+    /* Same key as the Meta event on purpose: TikTok also dedupes on
+       event + event_id, and Shopify redelivers for up to 48h. */
+    event_id: `order_${id}`,
+    user,
+    properties: {
+      currency: String(order.currency ?? "USD").toUpperCase(),
+      value,
+      content_type: "product",
+      contents,
+      order_id: id,
+    },
+    page: { url: env("SITE_URL") || "https://viraltoys.us/" },
+  };
+}
+
+/**
+ * Post the Purchase to TikTok's Events API.
+ *
+ * Never throws, and a TikTok failure never costs the Meta relay — Meta is the
+ * channel currently carrying spend, and it had better not go dark because
+ * TikTok 500s.
+ */
+async function sendTikTok(order: ShopifyOrder): Promise<Relay> {
+  const token = env("TIKTOK_EVENTS_API_TOKEN");
+  const sourceId = tiktokEventSourceId();
+
+  if (!token || !sourceId) {
+    /* Not an error: TikTok is simply not switched on yet. No retry — the Meta
+       relay already succeeded and redelivering would not help. */
+    return { platform: "tiktok", sent: false, retry: false };
+  }
+
+  const payload: Record<string, unknown> = {
+    event_source: "web",
+    event_source_id: sourceId,
+    data: [buildTikTokEvent(order)],
+  };
+  const testCode = env("TIKTOK_TEST_EVENT_CODE");
+  if (testCode) payload.test_event_code = testCode;
+
+  let response: Response;
+  try {
+    response = await fetch(
+      "https://business-api.tiktok.com/open_api/v1.3/event/track/",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          /* A header, not a query parameter. This is the single most common way
+             to get a confusing 40105 out of this endpoint. */
+          "Access-Token": token,
+        },
+        body: JSON.stringify(payload),
+        cache: "no-store",
+      }
+    );
+  } catch (error) {
+    console.error("[tiktok-capi] network error reaching TikTok", error);
+    return { platform: "tiktok", sent: false, retry: true };
+  }
+
+  const body = await response.text();
+
+  /*
+    TikTok returns HTTP 200 with a non-zero `code` in the body for most
+    application errors, so the HTTP status alone is not the answer. An
+    unparseable body is treated as a failure rather than a success.
+  */
+  let code: number | null = null;
+  try {
+    const parsed = JSON.parse(body || "{}") as { code?: number };
+    code = typeof parsed.code === "number" ? parsed.code : null;
+  } catch {
+    code = null;
+  }
+
+  if (!response.ok || code !== 0) {
+    console.error(
+      `[tiktok-capi] rejected CompletePayment (http ${response.status}, code ${code})`,
+      body.slice(0, 500)
+    );
+    /* Retry only server-side trouble, as on the Meta path: a bad payload fails
+       identically forever and a retry storm just hides the log. */
+    return {
+      platform: "tiktok",
+      sent: false,
+      retry: response.status >= 500,
+      status: response.status,
+    };
+  }
+
+  console.log(
+    `[tiktok-capi] CompletePayment sent for order ${exactId(order) || "?"}`
+  );
+  return { platform: "tiktok", sent: true, retry: false, status: 200 };
+}
+
 /* ------------------------------------------------------------ verification */
 
 function signatureValid(
@@ -290,6 +509,70 @@ function signatureValid(
   return crypto.timingSafeEqual(received, expected);
 }
 
+/**
+ * Post the Purchase to Meta's Conversions API.
+ *
+ * Lifted verbatim out of POST when the TikTok relay was added. The semantics
+ * are deliberately unchanged — which failures retry, what gets logged, what
+ * never gets logged — because this path is currently carrying live attribution
+ * and a refactor is not the place to alter it.
+ */
+async function sendMeta(
+  order: ShopifyOrder,
+  token: string,
+  dataset: string
+): Promise<Relay> {
+  const event = buildEvent(order);
+  const testCode = env("META_CAPI_TEST_EVENT_CODE");
+
+  const payload: Record<string, unknown> = { data: [event] };
+  if (testCode) payload.test_event_code = testCode;
+
+  const endpoint =
+    `https://graph.facebook.com/${GRAPH_VERSION}/${dataset}/events` +
+    `?access_token=${encodeURIComponent(token)}`;
+
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    });
+  } catch (error) {
+    /* Network trouble is transient, so ask for the retry. The stable event_id
+       means a retry that duplicates a delivery still counts once. */
+    console.error("[capi] network error reaching Meta", error);
+    return { platform: "meta", sent: false, retry: true };
+  }
+
+  const body = await response.text();
+
+  if (!response.ok) {
+    /*
+      A 4xx is our payload's fault and will fail identically forever, so take
+      the 200 and stop the retry storm — the log is the thing to act on. A 5xx
+      is Meta's and is worth retrying.
+    */
+    console.error(
+      `[capi] Meta rejected Purchase (${response.status})`,
+      body.slice(0, 500)
+    );
+    return {
+      platform: "meta",
+      sent: false,
+      retry: response.status >= 500,
+      status: response.status,
+    };
+  }
+
+  /* Order id only. Never log the payload: it carries hashed PII plus a raw IP
+     and user agent. */
+  console.log(`[capi] Purchase sent for order ${exactId(order) || "?"}`);
+  return { platform: "meta", sent: true, retry: false, status: 200 };
+}
+
 /* ------------------------------------------------------------------ routes */
 
 /**
@@ -300,12 +583,16 @@ function signatureValid(
 export async function GET(): Promise<Response> {
   return json(200, {
     ok: true,
-    route: "shopify orders/paid -> Meta CAPI Purchase",
+    route: "shopify orders/paid -> Meta CAPI Purchase + TikTok CompletePayment",
     configured: {
       shopifyWebhookSecret: Boolean(env("SHOPIFY_WEBHOOK_SECRET")),
       metaAccessToken: Boolean(env("META_CAPI_ACCESS_TOKEN")),
       datasetId: Boolean(datasetId()),
       testEventCode: Boolean(env("META_CAPI_TEST_EVENT_CODE")),
+      tiktokAccessToken: Boolean(env("TIKTOK_EVENTS_API_TOKEN")),
+      tiktokEventSourceId: Boolean(tiktokEventSourceId()),
+      tiktokTestEventCode: Boolean(env("TIKTOK_TEST_EVENT_CODE")),
+      tiktokRelayActive: tiktokConfigured(),
     },
   });
 }
@@ -342,58 +629,40 @@ export async function POST(request: Request): Promise<Response> {
     return json(400, { error: "bad_json" });
   }
 
-  const event = buildEvent(order);
-  const testCode = env("META_CAPI_TEST_EVENT_CODE");
+  /*
+    Both relays, in parallel, each isolated from the other.
 
-  const payload: Record<string, unknown> = { data: [event] };
-  if (testCode) payload.test_event_code = testCode;
+    Meta is the channel actually carrying spend, so a TikTok outage must never
+    stop it — hence Promise.all across two functions that are written never to
+    throw, rather than a sequential chain where the first failure skips the
+    second.
 
-  const endpoint =
-    `https://graph.facebook.com/${GRAPH_VERSION}/${dataset}/events` +
-    `?access_token=${encodeURIComponent(token)}`;
+    Asking Shopify to redeliver is safe for both: each sends the same stable
+    `order_<id>` event id and both platforms dedupe on it, so a duplicate
+    delivery cannot double-count revenue on either side.
+  */
+  const [metaRelay, tiktokRelay] = await Promise.all([
+    sendMeta(order, token, dataset),
+    sendTikTok(order),
+  ]);
 
-  let response: Response;
-  try {
-    response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-      cache: "no-store",
+  if (metaRelay.retry || tiktokRelay.retry) {
+    return json(502, {
+      error: metaRelay.retry ? "meta_retry" : "tiktok_retry",
+      meta: metaRelay,
+      tiktok: tiktokRelay,
     });
-  } catch (error) {
-    /* Network trouble is transient, so ask for the retry. The stable event_id
-       means a retry that duplicates a delivery still counts once. */
-    console.error("[capi] network error reaching Meta", error);
-    return json(502, { error: "meta_unreachable" });
   }
 
-  const body = await response.text();
-
-  if (!response.ok) {
-    /*
-      A 4xx is our payload's fault and will fail identically forever, so take
-      the 200 and stop the retry storm — the log is the thing to act on. A 5xx
-      is Meta's and is worth retrying.
-    */
-    console.error(
-      `[capi] Meta rejected Purchase (${response.status})`,
-      body.slice(0, 500)
-    );
-    return response.status >= 500
-      ? json(502, { error: "meta_server_error" })
-      : json(200, { ok: false, status: response.status });
-  }
-
-  /* Order id only. Never log the payload: it carries hashed PII plus a raw IP
-     and user agent. */
-  console.log(`[capi] Purchase sent for order ${exactId(order) || "?"}`);
-
-  let meta: unknown = null;
-  try {
-    meta = JSON.parse(body || "{}");
-  } catch {
-    meta = null;
-  }
-
-  return json(200, { ok: true, event_id: event.event_id, meta });
+  /*
+    `ok` tracks Meta alone, deliberately. TikTok not being switched on yet is a
+    normal state, not a failed delivery, and must not read as a broken webhook
+    in Shopify's delivery log.
+  */
+  return json(200, {
+    ok: metaRelay.sent,
+    event_id: `order_${exactId(order)}`,
+    meta: metaRelay,
+    tiktok: { ...tiktokRelay, configured: tiktokConfigured() },
+  });
 }
