@@ -1792,6 +1792,39 @@ body.locked {
   border-color: var(--pink);
   box-shadow: 0 0 0 4px rgba(255, 20, 147, 0.13);
 }
+/*
+  Sold-out option. Shown rather than hidden so the shopper can see the variant
+  exists and is unavailable; the dashed border plus the strike plus the label
+  carry the state three ways, so it does not rely on colour alone.
+*/
+.pdp__variant--out {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: var(--line);
+  border-style: dashed;
+}
+.pdp__variant--out:hover {
+  border-color: var(--line);
+  box-shadow: none;
+}
+/*
+  The strike goes on the title and price, NOT on the button. `text-decoration`
+  inherits into descendants and a child cannot cancel it, so striking the
+  button would also strike the "Sold out" label.
+*/
+.pdp__variant--out span,
+.pdp__variant--out b {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+.pdp__variant-tag {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
 .pdp__add {
   width: 100%;
   margin-top: 18px;

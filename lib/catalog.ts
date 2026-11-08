@@ -161,3 +161,23 @@ export function lowStock(
   if (quantityAvailable > LOW_STOCK_THRESHOLD) return null;
   return { remaining: quantityAvailable, urgent: quantityAvailable <= 5 };
 }
+
+/**
+ * Whether a variant is sold out and must not be purchasable.
+ *
+ * Two signals are checked, because they disagree in the case that matters.
+ * `availableForSale` is Shopify's own verdict and the one checkout enforces,
+ * but it stays TRUE for a variant with zero inventory whenever "continue
+ * selling when out of stock" is enabled on it — which is exactly how a
+ * storefront takes an order it cannot fulfil. `quantityAvailable === 0` closes
+ * that gap.
+ *
+ * `quantityAvailable` is null when the Storefront token lacks the
+ * `unauthenticated_read_product_inventory` scope. Null means UNKNOWN, not
+ * zero, so it deliberately does not mark a variant sold out — otherwise losing
+ * the scope would black out the entire catalogue.
+ */
+export function isSoldOut(variant: Variant): boolean {
+  if (!variant.availableForSale) return true;
+  return variant.quantityAvailable === 0;
+}

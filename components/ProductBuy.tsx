@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { useCart } from "./CartProvider";
-import { lowStock } from "@/lib/catalog";
+import { isSoldOut, lowStock } from "@/lib/catalog";
 import type { Money, Product } from "@/lib/catalog";
 import { track } from "@/lib/pixel";
 import { ttTrack } from "@/lib/tiktok-pixel";
@@ -26,7 +26,14 @@ function money(m: Money): string {
 export default function ProductBuy({ product }: { product: Product }) {
   const { add, isAdding } = useCart();
 
-  const sellable = product.variants.filter((v) => v.availableForSale);
+  /*
+    Which variants can actually be bought. This drives selection only — the
+    picker below renders EVERY variant, including the sold-out ones, so a
+    shopper can see that the 4-pack exists and is unavailable rather than
+    wondering why it vanished. Hiding them was the old behaviour and it read as
+    a broken page.
+  */
+  const sellable = product.variants.filter((v) => !isSoldOut(v));
   const [selectedId, setSelectedId] = useState<string>(sellable[0]?.id ?? "");
   const selected = sellable.find((v) => v.id === selectedId) ?? sellable[0] ?? null;
 
@@ -127,28 +134,47 @@ export default function ProductBuy({ product }: { product: Product }) {
         </p>
       )}
 
-      {sellable.length > 1 && (
+      {/*
+        Gated on the full variant count, not the sellable count. A product with
+        one option in stock and three sold out still needs the picker, because
+        the three sold-out ones are the information the shopper is missing.
+      */}
+      {product.variants.length > 1 && (
         <div
           className="pdp__variants"
           role="radiogroup"
           aria-label="Choose an option"
         >
-          {sellable.map((v) => (
-            <button
-              key={v.id}
-              type="button"
-              role="radio"
-              aria-checked={v.id === selected.id}
-              className={
-                "pdp__variant" +
-                (v.id === selected.id ? " pdp__variant--on" : "")
-              }
-              onClick={() => setSelectedId(v.id)}
-            >
-              <span>{v.title}</span>
-              <b>{money(v.price)}</b>
-            </button>
-          ))}
+          {product.variants.map((v) => {
+            const out = isSoldOut(v);
+
+            return (
+              <button
+                key={v.id}
+                type="button"
+                role="radio"
+                /* A sold-out option is never the checked one, even if it
+                   somehow shares an id with the selection. */
+                aria-checked={!out && v.id === selected.id}
+                disabled={out}
+                className={
+                  "pdp__variant" +
+                  (!out && v.id === selected.id ? " pdp__variant--on" : "") +
+                  (out ? " pdp__variant--out" : "")
+                }
+                /* `disabled` already blocks the click; the guard keeps the
+                   intent explicit and survives someone removing the attribute
+                   to chase a styling bug. */
+                onClick={() => {
+                  if (!out) setSelectedId(v.id);
+                }}
+              >
+                <span>{v.title}</span>
+                <b>{money(v.price)}</b>
+                {out && <em className="pdp__variant-tag">Sold out</em>}
+              </button>
+            );
+          })}
         </div>
       )}
 
