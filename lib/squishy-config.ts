@@ -316,119 +316,71 @@ export const TRUST = [
  */
 export const MORE_PRODUCTS: readonly string[] = [
   /*
-    The full catalogue, listed on the owner's explicit instruction after
-    being shown the image audit below. The supplier photography has NOT been
-    replaced yet; the owner is swapping it in Shopify and has accepted the
-    risk in the meantime, with the Meta catalogue deliberately excluded as
-    the mitigation.
+    THE ORDER BELOW IS THE ORDER SHOPPERS SEE. ProductGrid renders this array
+    verbatim, so a position here is a merchandising decision rather than an
+    accident of whatever Shopify returned first. The first seven are the
+    owner's chosen lead, set 11 Nov 2026; the rest of the catalogue follows.
 
-    A handle listed here still only renders once its product is ACTIVE and
-    published to Squishy Headless 03. getProductsByHandles drops anything
-    that does not resolve, so a draft product simply has no card.
-  */
+    A handle listed here only renders once its product is ACTIVE and published
+    to Squishy Headless 03. Every DSers import so far has arrived published to
+    NO channel at all, so check that first when a card fails to appear:
+    getProductsByHandles drops anything that does not resolve, so the symptom
+    is a silently missing card, never an error. Always use a hand-set
+    permanent handle, never the ~100-character supplier slug — that slug is
+    regenerated on retitle and empties the card.
 
-  // Audited clean, image by image.
-  "butter-stick-squishy",
-  "caramel-pudding-squishy",
-  "water-bottle-squishy",
+    IMAGE AUDIT. Third-party marks are visible in the CURRENT supplier
+    photography on the handles flagged below. The owner was shown this audit,
+    chose to list the full catalogue regardless, and is swapping the media in
+    Shopify; excluding the Meta catalogue is the agreed mitigation. The flags
+    are carried as trailing comments on each handle rather than as positional
+    blocks, so they travel with the product when the order changes again.
 
-  /*
-    Third-party marks visible in the CURRENT supplier photography. Replace
-    the Shopify media before this page carries real traffic:
-      chocolate-butter-sticks-squishy  Reese's, Twix, Hershey's, Kinder,
-                                       Ferrero, Bounty, Cadbury, Snickers,
-                                       KitKat, Mars
-      chocolate-snack-squishy          Twix, Snickers, KitKat, Reese's,
-                                       Kinder, Bounty, Cadbury, Nestle
-      shiny-malt-squishy               Hello Kitty, Sanrio
-      sensory-cube-squishy             Starbucks siren + wordmark, Schylling
-      jellyfish-squishy                NEE DOH embossed, identifiable person
-      glitter-dumpling-squishy-set     Squeezy Dumplings
-      fruit-maltose-toothpaste-squishy Chiboki
+      chocolate-butter-sticks-squishy   Reese's, Twix, Hershey's, Kinder,
+                                        Ferrero, Bounty, Cadbury, Snickers,
+                                        KitKat, Mars
+      shiny-malt-squishy                Hello Kitty, Sanrio
+      sensory-cube-squishy              Starbucks siren + wordmark, Schylling
+      jellyfish-squishy                 NEE DOH embossed, identifiable person
+      fruit-maltose-toothpaste-squishy  Chiboki
+      chocolate-squishy                 NOT a trademark problem: four
+                                        identifiable people including a MINOR,
+                                        under overlay labels reading "Autism"
+                                        and "Anxiety". That is a likeness and
+                                        substantiation issue, and no image
+                                        swap on the others addresses it. This
+                                        is the one to fix first.
 
-    CLEARED 2026-11-05 — glitter-dumpling-squishy was listed here for a
+    CLEARED 2026-11-05 — glitter-dumpling-squishy was flagged here for a
     "Squishy Steam Bunz" mark. The owner confirms that photography is of the
     actual product and packaging being sold, so there is no third-party mark
     and nothing to replace. Do not re-flag it; it is the landing page for a
     live ad set.
   */
-  "chocolate-butter-sticks-squishy",
-  "shiny-malt-squishy",
-  "sensory-cube-squishy",
-  "jellyfish-squishy",
+
+  /* --- the lead, in the order the owner asked for ------------------- */
+  "smushers-dog-face-squishy",
   "glitter-dumpling-squishy",
-  "fruit-maltose-toothpaste-squishy",
-
-  /*
-    Unresolved on review. chocolate-squishy is the one to fix first: four
-    identifiable people including a MINOR, under overlay labels reading
-    "Autism" and "Anxiety". That is a likeness and substantiation problem,
-    not a trademark one, and no image swap on the others addresses it.
-  */
-  "chocolate-squishy",
-  "fried-chicken-squishy",
-  "bread-cat-squishy",
-  "gold-bar-squishy",
-
-  /*
-    Near-duplicates of two entries above - golden-butter-squishy is the same
-    13.5cm block as gold-bar-squishy, and fried-chicken-drumstick-squishy the
-    same drumstick as fried-chicken-squishy. Listed because the owner asked
-    for the complete catalogue; expect each pair to read as a repeat in the
-    carousel until one of each is retired.
-  */
-
-  /*
-    Viral Butter Squishy, added 5 Nov 2026 and published to Squishy Headless
-    03. First listed under the supplier-generated slug, then repointed here
-    once a permanent handle was set by hand in Shopify — which is what the
-    convention at the top of this list asks for, and what keeps a retitle in
-    Shopify from silently emptying this card out of the carousel.
-  */
-  "viral-butter-squishy",
-
-  /*
-    Big Size Peanut Squishy, added 5 Nov 2026.
-
-    It arrived published to NO sales channel at all - "This product is not
-    published anywhere" - so the Storefront API could not see it and every
-    URL for it 404'd. Publishing it to Squishy Headless 03 is what makes the
-    card render; listing the handle here alone would not have. Check the
-    channel first the next time a new product fails to appear.
-
-    Listed under a hand-set permanent handle, not the 97-character supplier
-    slug it shipped with, per the convention at the top of this list. No URL
-    redirect was created for the old slug because it was never published
-    anywhere, so nothing can be linking to it.
-  */
-  "big-size-peanut-squishy",
-
-  /*
-    Five products imported from DSers on 10 Nov 2026.
-
-    All five arrived published to NO sales channel — the third time this has
-    happened, after viral-butter-squishy and big-size-peanut-squishy. The
-    Storefront API cannot see a zero-channel product, so listing a handle here
-    would have rendered nothing at all. They are now on Squishy Headless 03.
-
-    Every handle below was renamed from the ~100-character supplier slug DSers
-    imports (e.g. "16cm-extra-large-big-dumplings-squeeze-toy-with-steamer-
-    glitter-squeeze-toy-soft-fidget-stress-relief-sensory-ball"). Those slugs
-    are regenerated when a product is retitled, which silently empties the
-    card. Titles were shortened for the same reason the handles were: the
-    supplier strings are keyword-stuffed and wrap to five lines in a grid card.
-
-    No URL redirects were created, because none of these was published
-    anywhere before today — nothing can be linking to the old slugs.
-
-    Appended rather than inserted, so the existing grid order is unchanged.
-    Reorder freely; this array is the render order.
-  */
   "big-dumpling-steamer-squishy",
-  "cookie-biscuit-squishy",
+  "viral-butter-squishy",
+  "butter-stick-squishy", // titled "Golden Butter Stick Squishy" in Shopify
   "giant-cheese-squishy",
   "jumbo-banana-squishy",
-  "smushers-dog-face-squishy",
+
+  /* --- the rest of the catalogue ------------------------------------ */
+  "caramel-pudding-squishy",
+  "water-bottle-squishy",
+  "chocolate-butter-sticks-squishy", // audit: confectionery marks
+  "shiny-malt-squishy", // audit: Hello Kitty / Sanrio
+  "sensory-cube-squishy", // audit: Starbucks, Schylling
+  "jellyfish-squishy", // audit: NEE DOH, identifiable person
+  "fruit-maltose-toothpaste-squishy", // audit: Chiboki
+  "chocolate-squishy", // audit: identifiable people incl. a MINOR — fix first
+  "fried-chicken-squishy",
+  "bread-cat-squishy",
+  "gold-bar-squishy", // near-duplicate: same 13.5cm block as butter-stick-squishy
+  "big-size-peanut-squishy",
+  "cookie-biscuit-squishy",
 ];
 
 /**

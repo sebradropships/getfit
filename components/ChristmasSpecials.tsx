@@ -10,6 +10,40 @@ import type { Money, Product, Variant } from "@/lib/catalog";
 /** How long each product holds the rail. */
 const ROTATE_MS = 5000;
 
+/**
+ * The snow, as explicit values rather than a formula or Math.random().
+ *
+ * Random would desynchronise server and client markup and throw a hydration
+ * mismatch; a formula (left = i * 16%) produces the evenly-spaced, identically
+ * sized row that the first version had and that reads as a pattern rather than
+ * as weather. These are hand-scattered: overlapping columns, sizes from 9px to
+ * 26px, speeds from 8s to 16s, and negative delays so the sky is already full
+ * on first paint instead of filling from the top.
+ *
+ * l = left %, s = size px, d = fall duration s, t = delay s (negative),
+ * o = peak opacity, x = horizontal drift px.
+ */
+const FLAKES = [
+  { c: "❄", l: 3, s: 20, d: 13, t: -1.2, o: 0.55, x: 24 },
+  { c: "✦", l: 9, s: 11, d: 9, t: -5.4, o: 0.4, x: -14 },
+  { c: "❅", l: 15, s: 26, d: 16, t: -8.1, o: 0.32, x: 30 },
+  { c: "•", l: 21, s: 9, d: 10, t: -2.7, o: 0.6, x: -8 },
+  { c: "❆", l: 27, s: 14, d: 8, t: -6.9, o: 0.5, x: 18 },
+  { c: "✧", l: 33, s: 17, d: 14, t: -3.3, o: 0.45, x: -22 },
+  { c: "❅", l: 38, s: 12, d: 11, t: -9.5, o: 0.6, x: 10 },
+  { c: "❄", l: 44, s: 23, d: 15, t: -0.6, o: 0.3, x: -26 },
+  { c: "✦", l: 50, s: 10, d: 9, t: -4.8, o: 0.65, x: 16 },
+  { c: "❆", l: 56, s: 18, d: 12, t: -7.2, o: 0.4, x: -12 },
+  { c: "•", l: 61, s: 9, d: 10, t: -1.9, o: 0.55, x: 22 },
+  { c: "❄", l: 67, s: 25, d: 16, t: -10.4, o: 0.3, x: -18 },
+  { c: "✧", l: 73, s: 15, d: 11, t: -5.9, o: 0.5, x: 8 },
+  { c: "❅", l: 79, s: 11, d: 8, t: -3.6, o: 0.62, x: -20 },
+  { c: "❄", l: 84, s: 21, d: 14, t: -8.7, o: 0.36, x: 26 },
+  { c: "✦", l: 89, s: 13, d: 10, t: -2.1, o: 0.55, x: -10 },
+  { c: "❆", l: 94, s: 17, d: 13, t: -6.3, o: 0.42, x: 14 },
+  { c: "✧", l: 97, s: 10, d: 9, t: -9.9, o: 0.6, x: -16 },
+] as const;
+
 function money(m: Money): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -113,9 +147,22 @@ export default function ChristmasSpecials({
     >
       {/* Decorative only — the heading already says Christmas. */}
       <div className="xmas__snow" aria-hidden="true">
-        {["❄", "✦", "❅", "✧", "❄", "✦"].map((s, i) => (
-          <span key={i} className="xmas__flake" style={{ "--i": i } as React.CSSProperties}>
-            {s}
+        {FLAKES.map((f, i) => (
+          <span
+            key={i}
+            className="xmas__flake"
+            style={
+              {
+                "--l": f.l,
+                "--s": f.s,
+                "--d": f.d,
+                "--t": f.t,
+                "--o": f.o,
+                "--x": f.x,
+              } as React.CSSProperties
+            }
+          >
+            {f.c}
           </span>
         ))}
       </div>
