@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 
+import ChristmasSpecials from "@/components/ChristmasSpecials";
 import DiscountSticker from "@/components/DiscountSticker";
 import HeroCarousel from "@/components/HeroCarousel";
 import ProductGrid from "@/components/ProductGrid";
@@ -9,13 +9,13 @@ import { getProduct, getProductsByHandles } from "@/lib/shopify";
 import { type Product } from "@/lib/catalog";
 import {
   BUNDLES,
+  CHRISTMAS_PRODUCTS,
   FEATURES,
   MORE_PRODUCTS,
   PRODUCT,
   SITE_URL,
   REVIEWS,
   REVIEWS_ARE_REAL,
-  STEPS,
   bestBundleSaving,
   findVariant,
   ratingSummary,
@@ -145,6 +145,19 @@ export default async function LandingPage() {
     more = [];
   }
 
+  /*
+    The seasonal rail, settled independently of `more` so a Shopify hiccup on
+    one list cannot blank the other. An empty result renders no rail at all
+    rather than an empty frame, which is also how the section retires itself
+    once CHRISTMAS_PRODUCTS is emptied after the season.
+  */
+  let christmas: Product[] = [];
+  try {
+    christmas = await getProductsByHandles([...CHRISTMAS_PRODUCTS]);
+  } catch {
+    christmas = [];
+  }
+
 
 
   /**
@@ -176,7 +189,32 @@ export default async function LandingPage() {
         }}
       />
 
-      {/* ======================================= 1. HERO + OFFER */}
+      {/* ===================================== 1. CHRISTMAS SPECIALS
+          Leads the page for the season. Renders nothing when
+          CHRISTMAS_PRODUCTS is empty, so retiring the rail after Christmas is
+          a config change rather than a page edit. */}
+      <ChristmasSpecials products={christmas} />
+
+      {/* ========================= 2. THE REST OF THE RANGE
+          Promoted above the blind box: a visitor arriving on a seasonal ad
+          wants to see things they can buy, and the mystery box is a single
+          SKU that now sits below as the considered purchase rather than the
+          opening pitch. */}
+      <section className="section">
+        <div className="wrap">
+          {/*
+            An h2 written in natural case because .h2 already uppercases it;
+            literal all-caps is what makes a screen reader spell a word out
+            letter by letter.
+          */}
+          <h2 className="h2 reveal marquee__head" id="more-squishies-head">
+            Explore <span className="grad-text">special</span> ones
+          </h2>
+          <ProductGrid products={more} labelledBy="more-squishies-head" />
+        </div>
+      </section>
+
+      {/* ======================================= 3. BLIND BOX + OFFER */}
       <section className="hero">
         <Floaties items={["✨", "❓", "⭐", "🎉", "💖", "🫧"]} />
 
@@ -221,79 +259,6 @@ export default async function LandingPage() {
               <SquishyBuy product={product} />
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ============================== 2. THE MYSTERY EXPERIENCE */}
-      <section className="section">
-        <div className="wrap">
-          <h2 className="h2 reveal">
-            Open. Squish. <span className="grad-text">Surprise.</span> Repeat.
-          </h2>
-
-          <div className="steps">
-            {STEPS.map((s) => (
-              <div className="step reveal" key={s.n}>
-                <div className="step__n">{s.n}</div>
-                <div className="step__emoji" aria-hidden="true">
-                  {s.emoji}
-                </div>
-                <h3>{s.title}</h3>
-                <p>{s.text}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* The unboxing shot does the persuading; the copy stays out of its
-              way. On mobile it stacks under the heading rather than beside it. */}
-          <div className="mystery reveal">
-            <Floaties items={["✨", "⭐", "🫧", "❓"]} />
-            <div className="mystery__grid">
-              <div className="mystery__shot">
-                <Image
-                  src={PRODUCT.images.unboxing.src}
-                  alt={PRODUCT.images.unboxing.alt}
-                  width={PRODUCT.images.unboxing.width}
-                  height={PRODUCT.images.unboxing.height}
-                  loading="lazy"
-                  sizes="(min-width: 768px) 44vw, 88vw"
-                />
-              </div>
-              <div className="mystery__copy">
-                <div className="mystery__cap">Which one will you get?</div>
-                <div className="mystery__count">Endless surprise styles</div>
-                <p className="mystery__sub">
-                  Animals, fruit, desserts, glitter-filled galaxy balls. Every
-                  box is packed at random — so no two openings are the same.
-                </p>
-              </div>
-            </div>
-          </div>
-
-
-          {/* Shopify's own media, when there is any beyond the first. */}
-          {/*
-            Was a strip of this product's own Shopify photographs. Every one
-            of them carried NeeDoh and Schylling marks, so the strip is now a
-            carousel of our own catalogue instead. Do not point this back at
-            product.images without looking at the images first.
-          */}
-          {/*
-            An h2, not an h3, even though the section already has one. Heading
-            level is about how topics nest, not how markup nests: the rest of
-            this section explains the mystery box, and this strip is the other
-            things we sell — a sibling subject, not a subdivision of it. The
-            cards inside carry h3 names, so an h3 here would sit at the same
-            level as the cards it is meant to introduce.
-
-            Written in natural case because .h2 already uppercases it; literal
-            all-caps is what makes a screen reader spell a word out letter by
-            letter. Every other h2 in this file is written the same way.
-          */}
-          <h2 className="h2 reveal marquee__head" id="more-squishies-head">
-            Explore special ones
-          </h2>
-          <ProductGrid products={more} labelledBy="more-squishies-head" />
         </div>
       </section>
 

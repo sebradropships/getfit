@@ -6,7 +6,7 @@ import ProductBuy from "@/components/ProductBuy";
 import ProductGallery from "@/components/ProductGallery";
 import { blurb } from "@/lib/text";
 import { getProduct } from "@/lib/shopify";
-import { MORE_PRODUCTS, TRUST } from "@/lib/squishy-config";
+import { SHOPPABLE_PRODUCTS, TRUST } from "@/lib/squishy-config";
 
 export const revalidate = 60;
 
@@ -19,11 +19,11 @@ export const revalidate = 60;
  * including those, which is the opposite of what this route is for.
  */
 function isFeatured(handle: string): boolean {
-  return MORE_PRODUCTS.includes(handle);
+  return SHOPPABLE_PRODUCTS.includes(handle);
 }
 
 export function generateStaticParams() {
-  return MORE_PRODUCTS.map((handle) => ({ handle }));
+  return SHOPPABLE_PRODUCTS.map((handle) => ({ handle }));
 }
 
 export async function generateMetadata({

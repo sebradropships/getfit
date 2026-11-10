@@ -431,6 +431,51 @@ export const MORE_PRODUCTS: readonly string[] = [
   "smushers-dog-face-squishy",
 ];
 
+/**
+ * The Christmas Specials rail that leads the page, in rotation order.
+ *
+ * Deliberately a separate list from MORE_PRODUCTS rather than a tag query:
+ * the order below is the order a visitor sees, and a seasonal rail is the one
+ * place that order is a merchandising decision rather than an accident of
+ * whatever Shopify returns first.
+ *
+ * Imported from DSers on 10 Nov 2026 and, like every import before them,
+ * published to NO sales channel on arrival — see the note above. All nine are
+ * now on Squishy Headless 03, renamed off their ~120-character supplier slugs,
+ * and carry a compare-at price so the rail can show a real strikethrough.
+ *
+ * To retire the rail after the season, empty this array: the section renders
+ * nothing when it is empty, so no page edit is needed.
+ */
+export const CHRISTMAS_PRODUCTS = [
+  "christmas-deer-dumpling-squishy",
+  "christmas-elk-glitter-dumpling-squishy",
+  "christmas-tree-snowman-squishy",
+  "christmas-dumpling-basket-squishy",
+  "santa-elk-dumpling-squishy",
+  "glitter-green-dumpling-squishy",
+  "christmas-mini-cube-4-pack",
+  "santa-elk-dumpling-squishy-set",
+  "christmas-crunchy-blocks-squishy",
+] as const;
+
+/**
+ * Every handle the storefront will serve a product page for.
+ *
+ * `app/products/[handle]/page.tsx` gates on this list and calls `notFound()`
+ * for anything absent, so a product missing here 404s even when Shopify has it
+ * published, priced and perfect. That gate used to read MORE_PRODUCTS
+ * directly, which meant the Christmas rail linked nine cards straight at 404s
+ * the moment it shipped.
+ *
+ * Derived rather than hand-maintained, so adding a handle to either list above
+ * is enough and there is no third place to forget. Deduplicated, because a
+ * seasonal product may also be promoted into the main grid.
+ */
+export const SHOPPABLE_PRODUCTS: readonly string[] = [
+  ...new Set<string>([...MORE_PRODUCTS, ...CHRISTMAS_PRODUCTS]),
+];
+
 /* ----------------------------------------------------------------- reviews */
 
 export type Review = {
