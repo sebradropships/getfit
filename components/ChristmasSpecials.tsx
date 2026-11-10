@@ -171,6 +171,19 @@ export default function ChristmasSpecials({
                       fill
                       sizes="(min-width: 760px) 300px, 88vw"
                       priority={i === 0}
+                      /*
+                        Eager on purpose. Mounting the slides was not enough on
+                        its own: next/image defaults to loading="lazy", and the
+                        browser deprioritises nine stacked lazy images so hard
+                        that only five had finished after eight seconds while
+                        four had not requested a byte (currentSrc null). The
+                        rotation then outran the downloads and the card blanked
+                        anyway. These are above the fold and the rail is
+                        useless without them, so none is a candidate for
+                        deferral. The first also takes priority, which preloads
+                        it for LCP.
+                      */
+                      loading={i === 0 ? undefined : "eager"}
                     />
                   </Link>
                 );
