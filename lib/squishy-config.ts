@@ -402,6 +402,33 @@ export const MORE_PRODUCTS: readonly string[] = [
     anywhere, so nothing can be linking to it.
   */
   "big-size-peanut-squishy",
+
+  /*
+    Five products imported from DSers on 10 Nov 2026.
+
+    All five arrived published to NO sales channel — the third time this has
+    happened, after viral-butter-squishy and big-size-peanut-squishy. The
+    Storefront API cannot see a zero-channel product, so listing a handle here
+    would have rendered nothing at all. They are now on Squishy Headless 03.
+
+    Every handle below was renamed from the ~100-character supplier slug DSers
+    imports (e.g. "16cm-extra-large-big-dumplings-squeeze-toy-with-steamer-
+    glitter-squeeze-toy-soft-fidget-stress-relief-sensory-ball"). Those slugs
+    are regenerated when a product is retitled, which silently empties the
+    card. Titles were shortened for the same reason the handles were: the
+    supplier strings are keyword-stuffed and wrap to five lines in a grid card.
+
+    No URL redirects were created, because none of these was published
+    anywhere before today — nothing can be linking to the old slugs.
+
+    Appended rather than inserted, so the existing grid order is unchanged.
+    Reorder freely; this array is the render order.
+  */
+  "big-dumpling-steamer-squishy",
+  "cookie-biscuit-squishy",
+  "giant-cheese-squishy",
+  "jumbo-banana-squishy",
+  "smushers-dog-face-squishy",
 ];
 
 /* ----------------------------------------------------------------- reviews */
