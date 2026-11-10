@@ -3,7 +3,7 @@ import Image from "next/image";
 
 import DiscountSticker from "@/components/DiscountSticker";
 import HeroCarousel from "@/components/HeroCarousel";
-import ProductCarousel from "@/components/ProductCarousel";
+import ProductGrid from "@/components/ProductGrid";
 import SquishyBuy from "@/components/SquishyBuy";
 import { getProduct, getProductsByHandles } from "@/lib/shopify";
 import { type Product } from "@/lib/catalog";
@@ -293,7 +293,7 @@ export default async function LandingPage() {
           <h2 className="h2 reveal marquee__head" id="more-squishies-head">
             Explore special ones
           </h2>
-          <ProductCarousel products={more} labelledBy="more-squishies-head" />
+          <ProductGrid products={more} labelledBy="more-squishies-head" />
         </div>
       </section>
 

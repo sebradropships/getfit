@@ -1825,6 +1825,193 @@ body.locked {
   letter-spacing: 0.04em;
   color: var(--muted);
 }
+
+/* ============================================ PRODUCT GRID (gcard)
+   The ordinary shop grid that replaced the auto-scrolling marquee.
+   Two across on a phone, three on a tablet, four on a desktop. */
+.gcards {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 640px) {
+  .gcards {
+    gap: 18px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1000px) {
+  .gcards {
+    gap: 20px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.gcard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+  border: 2.5px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.gcard:hover,
+.gcard:focus-within {
+  transform: translateY(-3px);
+  border-color: var(--pink);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* --- swipeable image strip ------------------------------------------- */
+.gcard__media {
+  position: relative;
+}
+/*
+  Native scroll-snap rather than a JS carousel: the drag is handled by the
+  compositor, which is what keeps a grid of fifteen of these smooth on a
+  phone. Scrollbar hidden on both engines — the dots are the affordance.
+*/
+.gcard__track {
+  display: flex;
+  aspect-ratio: 1 / 1;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg-2);
+}
+.gcard__track::-webkit-scrollbar {
+  display: none;
+}
+.gcard__slide {
+  position: relative;
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  display: block;
+}
+.gcard__img {
+  object-fit: cover;
+}
+.gcard__media--empty {
+  display: block;
+  aspect-ratio: 1 / 1;
+  background: var(--bg-2);
+}
+
+/* The strip of dots must not swallow the swipe, so the row is
+   pointer-events:none and only the buttons themselves take input. */
+.gcard__dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  pointer-events: none;
+}
+/* 20px button around a 7px dot: the visual stays small, the tap target does
+   not. A 7px target is unusable on a phone. */
+.gcard__dot {
+  pointer-events: auto;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.gcard__dot::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.22);
+  transition: width 0.18s ease, background 0.18s ease;
+}
+.gcard__dot--on::before {
+  width: 18px;
+  border-radius: 4px;
+  background: var(--pink);
+  box-shadow: none;
+}
+
+.gcard__flag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  background: rgba(17, 17, 17, 0.82);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+/* --- card text -------------------------------------------------------- */
+.gcard__body {
+  display: block;
+  padding: 10px 12px 14px;
+  text-decoration: none;
+  color: inherit;
+}
+.gcard__name {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.gcard__price {
+  margin: 6px 0 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+.gcard__from {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.gcard__was {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.gcard__out {
+  color: var(--muted);
+}
+.gcard__stock {
+  margin: 6px 0 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.gcard__stock--urgent {
+  color: var(--pink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gcard,
+  .gcard__dot::before {
+    transition: none;
+  }
+  .gcard:hover,
+  .gcard:focus-within {
+    transform: none;
+  }
+}
 .pdp__add {
   width: 100%;
   margin-top: 18px;
