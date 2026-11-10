@@ -124,9 +124,6 @@ export default function ChristmasSpecials({
   const [paused, setPaused] = useState(false);
 
   const resumeTimer = useRef<number | null>(null);
-  /* Set while the timer is driving the scroll, so its own scroll events are
-     not mistaken for the visitor grabbing the rail. */
-  const programmatic = useRef(false);
   const reduced = useRef(false);
 
   useEffect(() => {
@@ -155,26 +152,32 @@ export default function ChristmasSpecials({
   const goTo = useCallback((i: number) => {
     const el = trackRef.current;
     if (!el) return;
-    programmatic.current = true;
     el.scrollTo({
       left: i * el.clientWidth,
       behavior: reduced.current ? "auto" : "smooth",
     });
-    /* Smooth scrolling has no completion event, so the flag is cleared on a
-       timer comfortably longer than the animation. */
-    window.setTimeout(() => {
-      programmatic.current = false;
-    }, 700);
   }, []);
 
+  /*
+    Reports position only. It deliberately does NOT pause the rotation.
+
+    It used to, guarded by a flag set during the timer's own scrollTo and
+    cleared 700ms later. Smooth scrolling has no completion event, so that
+    window was a guess — and it was too short. The rail read its own
+    auto-advance as a swipe and stood itself down for six seconds after every
+    single one, which measured on the live page as an effective period of
+    about eleven seconds instead of five.
+
+    Intent now comes from input events (pointerdown, wheel, keydown), which
+    only a person can produce, so there is no race to lose. A scroll event is
+    evidence of movement, never of who caused it.
+  */
   const onScroll = useCallback(() => {
     const el = trackRef.current;
     if (!el || el.clientWidth === 0) return;
     const i = Math.round(el.scrollLeft / el.clientWidth);
     setIndex(Math.min(Math.max(i, 0), count - 1));
-    /* A scroll the timer did not cause is the visitor driving. */
-    if (!programmatic.current) holdAuto();
-  }, [count, holdAuto]);
+  }, [count]);
 
   useEffect(() => {
     if (count <= 1 || paused || reduced.current) return;
@@ -235,7 +238,12 @@ export default function ChristmasSpecials({
           className="xmas__track"
           ref={trackRef}
           onScroll={onScroll}
+          /* Every way a person can drive this rail by hand. Only these stand
+             the rotation down — a scroll event cannot say who caused it. */
           onPointerDown={holdAuto}
+          onTouchStart={holdAuto}
+          onWheel={holdAuto}
+          onKeyDown={holdAuto}
           /* Focusable so the rail can be scrolled with the arrow keys; the
              dots remain the explicit control. */
           tabIndex={0}
