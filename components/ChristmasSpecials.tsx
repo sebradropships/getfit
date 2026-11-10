@@ -1,20 +1,23 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { isSoldOut } from "@/lib/catalog";
 import type { Money, Product, Variant } from "@/lib/catalog";
 
-/** How long each product holds the rail. */
+/** How long each product holds the rail before it advances itself. */
 const ROTATE_MS = 5000;
+
+/** How long auto-rotation stands down after the visitor touches the rail. */
+const HOLD_AFTER_TOUCH_MS = 6000;
 
 /**
  * The snow, as explicit values rather than a formula or Math.random().
  *
  * Random would desynchronise server and client markup and throw a hydration
- * mismatch; a formula (left = i * 16%) produces the evenly-spaced, identically
+ * mismatch; a formula (left = i * 16%) produces the evenly spaced, identically
  * sized row that the first version had and that reads as a pattern rather than
  * as weather. These are hand-scattered: overlapping columns, sizes from 9px to
  * 26px, speeds from 8s to 16s, and negative delays so the sky is already full
@@ -89,52 +92,104 @@ function percentOff(variant: Variant): number {
 /**
  * The seasonal rail at the top of the page.
  *
- * One product at a time, advancing every five seconds. A rail rather than a
- * grid because this sits where the hero used to: it is the first thing seen,
- * so it gets the whole width and one clear subject instead of nine competing
- * thumbnails.
+ * SWIPEABLE AND SELF-ADVANCING, and both work through the same mechanism: the
+ * cards sit in a native scroll-snap track, the visitor can drag it, and the
+ * timer simply scrolls it. There is no separate "animate" path that a gesture
+ * could fight, and the active index is always read back from scrollLeft rather
+ * than tracked in parallel — so the dots cannot drift out of step with what is
+ * actually on screen.
  *
- * The timer is paused while a pointer is over the rail or focus is inside it.
- * Without that, a shopper reading the third card loses it mid-sentence, which
- * is the single most irritating thing an auto-advancing component does — and
- * was the reason the product marquee below this was replaced with a grid.
+ * Native scrolling rather than a JS drag means the gesture runs on the
+ * compositor with real momentum and rubber-banding, which a pointermove
+ * handler cannot reproduce convincingly on a phone.
  *
- * Honours prefers-reduced-motion by not advancing at all: the dots stay, so
- * the rail is still fully navigable by hand.
+ * Auto-rotation stands down for six seconds after any touch, and indefinitely
+ * while a pointer is over the rail or focus is inside it. Advancing out from
+ * under someone who is reading is the single most irritating thing this kind
+ * of component does, and it is what got the product marquee below replaced
+ * with a static grid.
+ *
+ * Every card is rendered once and never remounts, so no image is ever
+ * refetched on a change — see the eager-loading note on <Image> below for why
+ * that alone was not enough.
  */
 export default function ChristmasSpecials({
   products,
 }: {
   products: Product[];
 }) {
+  const count = products.length;
+  const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const count = products.length;
 
-  /* Read once on mount rather than at module scope: matchMedia does not exist
-     on the server, and the value must not be baked into the bundle. */
+  const resumeTimer = useRef<number | null>(null);
+  /* Set while the timer is driving the scroll, so its own scroll events are
+     not mistaken for the visitor grabbing the rail. */
+  const programmatic = useRef(false);
   const reduced = useRef(false);
+
   useEffect(() => {
     reduced.current =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
   }, []);
 
+  useEffect(
+    () => () => {
+      if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
+    },
+    []
+  );
+
+  /** Stand auto-rotation down, then let it resume. */
+  const holdAuto = useCallback(() => {
+    setPaused(true);
+    if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
+    resumeTimer.current = window.setTimeout(
+      () => setPaused(false),
+      HOLD_AFTER_TOUCH_MS
+    );
+  }, []);
+
+  const goTo = useCallback((i: number) => {
+    const el = trackRef.current;
+    if (!el) return;
+    programmatic.current = true;
+    el.scrollTo({
+      left: i * el.clientWidth,
+      behavior: reduced.current ? "auto" : "smooth",
+    });
+    /* Smooth scrolling has no completion event, so the flag is cleared on a
+       timer comfortably longer than the animation. */
+    window.setTimeout(() => {
+      programmatic.current = false;
+    }, 700);
+  }, []);
+
+  const onScroll = useCallback(() => {
+    const el = trackRef.current;
+    if (!el || el.clientWidth === 0) return;
+    const i = Math.round(el.scrollLeft / el.clientWidth);
+    setIndex(Math.min(Math.max(i, 0), count - 1));
+    /* A scroll the timer did not cause is the visitor driving. */
+    if (!programmatic.current) holdAuto();
+  }, [count, holdAuto]);
+
   useEffect(() => {
     if (count <= 1 || paused || reduced.current) return;
-    const t = window.setInterval(
-      () => setIndex((i) => (i + 1) % count),
-      ROTATE_MS
-    );
+    const t = window.setInterval(() => {
+      const el = trackRef.current;
+      if (!el || el.clientWidth === 0) return;
+      /* Advance from where the rail actually is, not from a counter that a
+         swipe could have left behind. */
+      const here = Math.round(el.scrollLeft / el.clientWidth);
+      goTo((here + 1) % count);
+    }, ROTATE_MS);
     return () => window.clearInterval(t);
-  }, [count, paused]);
+  }, [count, paused, goTo]);
 
   if (count === 0) return null;
-
-  const product = products[Math.min(index, count - 1)];
-  const variant = pickVariant(product);
-  const off = variant ? percentOff(variant) : 0;
-  const soldOut = product.variants.every((v) => isSoldOut(v));
 
   return (
     <section
@@ -145,7 +200,6 @@ export default function ChristmasSpecials({
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={() => setPaused(false)}
     >
-      {/* Decorative only — the heading already says Christmas. */}
       <div className="xmas__snow" aria-hidden="true">
         {FLAKES.map((f, i) => (
           <span
@@ -177,96 +231,79 @@ export default function ChristmasSpecials({
           <span className="xmas__head-glow">Christmas Specials</span>
         </h2>
 
-        {/*
-          key={product.id} remounts the card on every change, which replays the
-          entry animation. aria-live is polite and the region is labelled, so a
-          screen reader hears the new product rather than silently losing the
-          old one.
-        */}
-        <div className="xmas__stage" aria-live="polite">
-          <article className="xmas__card">
-            {/*
-              EVERY slide is rendered and kept mounted; only opacity changes.
+        <div
+          className="xmas__track"
+          ref={trackRef}
+          onScroll={onScroll}
+          onPointerDown={holdAuto}
+          /* Focusable so the rail can be scrolled with the arrow keys; the
+             dots remain the explicit control. */
+          tabIndex={0}
+          role="group"
+          aria-label={`${count} Christmas products, swipe to browse`}
+        >
+          {products.map((product, i) => {
+            const variant = pickVariant(product);
+            const off = variant ? percentOff(variant) : 0;
+            const soldOut = product.variants.every((v) => isSoldOut(v));
+            const image = product.featuredImage ?? product.images[0] ?? null;
+            const href = `/products/${product.handle}`;
 
-              The obvious construction — render just the active product and key
-              the card on its id — remounts the <img> on each rotation, so the
-              browser re-picks from srcset before layout has settled and grabs
-              the largest candidate (observed: w=3840 for a 296px box). It then
-              corrects to w=640 a second later, which showed up as a blank
-              square for roughly a third of every five-second slot.
-
-              Mounted once, each image loads once and the rotation is a pure
-              compositor opacity swap with nothing to fetch. Nine small webps
-              is a trivial cost next to the grid below, which carries 86.
-            */}
-            <div className="xmas__shot">
-              {products.map((p, i) => {
-                const img = p.featuredImage ?? p.images[0] ?? null;
-                if (!img) return null;
-                return (
-                  <Link
-                    key={p.id}
-                    href={`/products/${p.handle}`}
-                    className={"xmas__slide" + (i === index ? " is-on" : "")}
-                    aria-hidden={i !== index ? true : undefined}
-                    tabIndex={i !== index ? -1 : undefined}
-                  >
-                    <Image
-                      className="xmas__img"
-                      src={img.url}
-                      alt={i === index ? img.altText || p.title : ""}
-                      fill
-                      sizes="(min-width: 760px) 300px, 88vw"
-                      priority={i === 0}
-                      /*
-                        Eager on purpose. Mounting the slides was not enough on
-                        its own: next/image defaults to loading="lazy", and the
-                        browser deprioritises nine stacked lazy images so hard
-                        that only five had finished after eight seconds while
-                        four had not requested a byte (currentSrc null). The
-                        rotation then outran the downloads and the card blanked
-                        anyway. These are above the fold and the rail is
-                        useless without them, so none is a candidate for
-                        deferral. The first also takes priority, which preloads
-                        it for LCP.
-                      */
-                      loading={i === 0 ? undefined : "eager"}
-                    />
+            return (
+              <article className="xmas__card" key={product.id}>
+                <div className="xmas__shot">
+                  <Link href={href} className="xmas__shotlink">
+                    {image && (
+                      <Image
+                        className="xmas__img"
+                        src={image.url}
+                        alt={image.altText || product.title}
+                        fill
+                        sizes="(min-width: 760px) 300px, 88vw"
+                        priority={i === 0}
+                        /*
+                          Eager on purpose. next/image defaults to lazy, and a
+                          browser deprioritises a row of off-screen lazy images
+                          hard enough that measuring the live page found only
+                          five of nine complete after eight seconds, four
+                          never having requested a byte. The rotation then
+                          reached a card before its bytes did and it rendered
+                          blank. The first also takes priority, for LCP.
+                        */
+                        loading={i === 0 ? undefined : "eager"}
+                      />
+                    )}
                   </Link>
-                );
-              })}
-              {off > 0 && <span className="xmas__off">−{off}%</span>}
-              {soldOut && <span className="xmas__sold">Sold out</span>}
-            </div>
+                  {off > 0 && <span className="xmas__off">−{off}%</span>}
+                  {soldOut && <span className="xmas__sold">Sold out</span>}
+                </div>
 
-            {/* Keyed here rather than on the card: the copy has nothing to
-                fetch, so remounting it to replay the entry animation is free,
-                while remounting the images is what caused the blank. */}
-            <div className="xmas__body" key={product.id}>
-              <h3 className="xmas__name">
-                <Link href={`/products/${product.handle}`}>{product.title}</Link>
-              </h3>
+                <div className="xmas__body">
+                  <h3 className="xmas__name">
+                    <Link href={href}>{product.title}</Link>
+                  </h3>
 
-              {variant && (
-                <p className="xmas__prices">
-                  {off > 0 && (
-                    <s className="xmas__was">{money(variant.compareAtPrice!)}</s>
+                  {variant && (
+                    <p className="xmas__prices">
+                      {off > 0 && (
+                        <s className="xmas__was">
+                          {money(variant.compareAtPrice!)}
+                        </s>
+                      )}
+                      <b className="xmas__now">{money(variant.price)}</b>
+                      {off > 0 && (
+                        <span className="xmas__save">Save {off}%</span>
+                      )}
+                    </p>
                   )}
-                  <b className="xmas__now">{money(variant.price)}</b>
-                  {off > 0 && (
-                    <span className="xmas__save">Save {off}%</span>
-                  )}
-                </p>
-              )}
 
-              <Link
-                className="btn btn--jelly xmas__cta"
-                href={`/products/${product.handle}`}
-              >
-                Shop this gift →
-              </Link>
-            </div>
-          </article>
+                  <Link className="btn btn--jelly xmas__cta" href={href}>
+                    Shop this gift →
+                  </Link>
+                </div>
+              </article>
+            );
+          })}
         </div>
 
         <div className="xmas__dots">
@@ -277,7 +314,10 @@ export default function ChristmasSpecials({
               className={"xmas__dot" + (i === index ? " xmas__dot--on" : "")}
               aria-label={`Show ${p.title}`}
               aria-current={i === index ? "true" : undefined}
-              onClick={() => setIndex(i)}
+              onClick={() => {
+                holdAuto();
+                goTo(i);
+              }}
             />
           ))}
         </div>

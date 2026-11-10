@@ -2111,14 +2111,36 @@ body.locked {
 }
 
 /* --- the rotating card ------------------------------------------------ */
-.xmas__stage {
+/*
+  The swipe track. Native scroll-snap rather than a JS drag, so the gesture
+  runs on the compositor with real momentum and rubber-banding. The timer
+  advances the rail by scrolling this same element, which is why an
+  auto-advance and a swipe can never fight each other — there is only one
+  mechanism.
+*/
+.xmas__track {
+  width: min(860px, 100%);
+  margin: 0 auto;
   display: flex;
-  justify-content: center;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 22px;
+}
+.xmas__track::-webkit-scrollbar {
+  display: none;
+}
+.xmas__track:focus-visible {
+  outline: 2px solid #ffe9a8;
+  outline-offset: 3px;
 }
 .xmas__card {
+  flex: 0 0 100%;
+  scroll-snap-align: center;
   display: grid;
   gap: 18px;
-  width: min(860px, 100%);
   grid-template-columns: 1fr;
   padding: 16px;
   border-radius: 22px;
@@ -2133,16 +2155,6 @@ body.locked {
     padding: 20px;
   }
 }
-@keyframes xmasIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 
 .xmas__shot {
   position: relative;
@@ -2152,24 +2164,10 @@ body.locked {
   overflow: hidden;
   background: rgba(255, 255, 255, 0.92);
 }
-/*
-  All nine slides stay mounted and stacked; rotation is an opacity swap the
-  compositor handles with nothing to fetch. Remounting them instead made the
-  browser re-pick from srcset before layout settled, which blanked the card
-  for about a second on every change. pointer-events is cleared on the hidden
-  ones so an invisible slide cannot take the click.
-*/
-.xmas__slide {
+.xmas__shotlink {
   position: absolute;
   inset: 0;
   display: block;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.45s ease;
-}
-.xmas__slide.is-on {
-  opacity: 1;
-  pointer-events: auto;
 }
 .xmas__img {
   object-fit: cover;
@@ -2204,7 +2202,6 @@ body.locked {
 
 .xmas__body {
   text-align: center;
-  animation: xmasIn 0.45s ease both;
 }
 @media (min-width: 760px) {
   .xmas__body {
@@ -2335,15 +2332,14 @@ body.locked {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .xmas__body,
   .xmas__head-glow {
     animation: none;
-  }
-  .xmas__head-glow {
     filter: none;
   }
-  .xmas__slide {
-    transition: none;
+  /* The rail still swipes, it just stops advancing on its own and jumps
+     rather than glides — the component passes behavior:"auto" to scrollTo. */
+  .xmas__track {
+    scroll-behavior: auto;
   }
   .xmas__snow {
     display: none;
