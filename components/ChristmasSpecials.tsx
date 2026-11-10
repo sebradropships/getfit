@@ -101,7 +101,6 @@ export default function ChristmasSpecials({
   const variant = pickVariant(product);
   const off = variant ? percentOff(variant) : 0;
   const soldOut = product.variants.every((v) => isSoldOut(v));
-  const image = product.featuredImage ?? product.images[0] ?? null;
 
   return (
     <section
@@ -138,23 +137,52 @@ export default function ChristmasSpecials({
           old one.
         */}
         <div className="xmas__stage" aria-live="polite">
-          <article className="xmas__card" key={product.id}>
-            <Link className="xmas__shot" href={`/products/${product.handle}`}>
-              {image && (
-                <Image
-                  className="xmas__img"
-                  src={image.url}
-                  alt={image.altText || product.title}
-                  fill
-                  sizes="(min-width: 900px) 420px, 88vw"
-                  priority={index === 0}
-                />
-              )}
+          <article className="xmas__card">
+            {/*
+              EVERY slide is rendered and kept mounted; only opacity changes.
+
+              The obvious construction — render just the active product and key
+              the card on its id — remounts the <img> on each rotation, so the
+              browser re-picks from srcset before layout has settled and grabs
+              the largest candidate (observed: w=3840 for a 296px box). It then
+              corrects to w=640 a second later, which showed up as a blank
+              square for roughly a third of every five-second slot.
+
+              Mounted once, each image loads once and the rotation is a pure
+              compositor opacity swap with nothing to fetch. Nine small webps
+              is a trivial cost next to the grid below, which carries 86.
+            */}
+            <div className="xmas__shot">
+              {products.map((p, i) => {
+                const img = p.featuredImage ?? p.images[0] ?? null;
+                if (!img) return null;
+                return (
+                  <Link
+                    key={p.id}
+                    href={`/products/${p.handle}`}
+                    className={"xmas__slide" + (i === index ? " is-on" : "")}
+                    aria-hidden={i !== index ? true : undefined}
+                    tabIndex={i !== index ? -1 : undefined}
+                  >
+                    <Image
+                      className="xmas__img"
+                      src={img.url}
+                      alt={i === index ? img.altText || p.title : ""}
+                      fill
+                      sizes="(min-width: 760px) 300px, 88vw"
+                      priority={i === 0}
+                    />
+                  </Link>
+                );
+              })}
               {off > 0 && <span className="xmas__off">−{off}%</span>}
               {soldOut && <span className="xmas__sold">Sold out</span>}
-            </Link>
+            </div>
 
-            <div className="xmas__body">
+            {/* Keyed here rather than on the card: the copy has nothing to
+                fetch, so remounting it to replay the entry animation is free,
+                while remounting the images is what caused the blank. */}
+            <div className="xmas__body" key={product.id}>
               <h3 className="xmas__name">
                 <Link href={`/products/${product.handle}`}>{product.title}</Link>
               </h3>

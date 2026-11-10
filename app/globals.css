@@ -2124,7 +2124,6 @@ body.locked {
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.22);
-  animation: xmasIn 0.5s ease both;
 }
 @media (min-width: 760px) {
   .xmas__card {
@@ -2152,6 +2151,25 @@ body.locked {
   border-radius: 16px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.92);
+}
+/*
+  All nine slides stay mounted and stacked; rotation is an opacity swap the
+  compositor handles with nothing to fetch. Remounting them instead made the
+  browser re-pick from srcset before layout settled, which blanked the card
+  for about a second on every change. pointer-events is cleared on the hidden
+  ones so an invisible slide cannot take the click.
+*/
+.xmas__slide {
+  position: absolute;
+  inset: 0;
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+.xmas__slide.is-on {
+  opacity: 1;
+  pointer-events: auto;
 }
 .xmas__img {
   object-fit: cover;
@@ -2186,6 +2204,7 @@ body.locked {
 
 .xmas__body {
   text-align: center;
+  animation: xmasIn 0.45s ease both;
 }
 @media (min-width: 760px) {
   .xmas__body {
@@ -2306,12 +2325,15 @@ body.locked {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .xmas__card,
+  .xmas__body,
   .xmas__head-glow {
     animation: none;
   }
   .xmas__head-glow {
     filter: none;
+  }
+  .xmas__slide {
+    transition: none;
   }
   .xmas__snow {
     display: none;
